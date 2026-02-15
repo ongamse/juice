@@ -126,6 +126,17 @@ jobs:
           output: 'trivy-image-results.json'
         continue-on-error: true
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies for Dependency-Check
+        run: npm install --package-lock-only
+
+      - name: Install frontend dependencies for Dependency-Check
+        run: cd frontend && npm install --package-lock-only
+
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -133,6 +144,8 @@ jobs:
           path: '.'
           format: 'XML'
           out: '.'
+          args: >-
+            --exclude "**/test/files/**"
         continue-on-error: true
 
       - name: Upload SCA artifacts
