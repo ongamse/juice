@@ -79,8 +79,8 @@ main() {
     ENGAGEMENT_ID=$(create_engagement "$PRODUCT_ID")
 
     import_scan "$ENGAGEMENT_ID" "semgrep-results.json"          "Semgrep JSON Report"
-    import_scan "$ENGAGEMENT_ID" "trivy-fs-results.json"         "Trivy Scan"
-    import_scan "$ENGAGEMENT_ID" "trivy-image-results.json"      "Trivy Scan"
+    import_scan "$ENGAGEMENT_ID" "trivy-fs-results.json"         "Trivy Filesystem Scan"
+    import_scan "$ENGAGEMENT_ID" "trivy-image-results.json"      "Trivy Image Scan"
     import_scan "$ENGAGEMENT_ID" "report_xml.xml"                "ZAP Scan"
     import_scan "$ENGAGEMENT_ID" "dependency-check-report.xml"   "Dependency Check Scan"
 
