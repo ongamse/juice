@@ -14,7 +14,6 @@ import { CodeSnippetService } from '../Services/code-snippet.service'
 import { CookieModule, CookieService } from 'ngy-cookie'
 import { ConfigurationService } from '../Services/configuration.service'
 import { of, throwError } from 'rxjs'
-import { CodeFixesService } from '../Services/code-fixes.service'
 import { VulnLinesService } from '../Services/vuln-lines.service'
 import { ChallengeService } from '../Services/challenge.service'
 import { NoopAnimationsModule } from '@angular/platform-browser/animations'
@@ -26,7 +25,6 @@ describe('CodeSnippetComponent', () => {
   let configurationService: any
   let cookieService: any
   let codeSnippetService: any
-  let codeFixesService: any
   let vulnLinesService: any
   let challengeService: any
 
@@ -36,12 +34,9 @@ describe('CodeSnippetComponent', () => {
     cookieService = jasmine.createSpyObj('CookieService', ['put', 'hasKey'])
     codeSnippetService = jasmine.createSpyObj('CodeSnippetService', ['get', 'check'])
     codeSnippetService.get.and.returnValue(of({}))
-    codeFixesService = jasmine.createSpyObj('CodeFixesService', ['get', 'check'])
-    codeFixesService.get.and.returnValue(of({}))
     vulnLinesService = jasmine.createSpyObj('VulnLinesService', ['check'])
-    challengeService = jasmine.createSpyObj('ChallengeService', ['continueCodeFindIt', 'continueCodeFixIt'])
+    challengeService = jasmine.createSpyObj('ChallengeService', ['continueCodeFindIt'])
     challengeService.continueCodeFindIt.and.returnValue(of('continueCodeFindIt'))
-    challengeService.continueCodeFixIt.and.returnValue(of('continueCodeFixIt'))
 
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule,
@@ -56,7 +51,6 @@ describe('CodeSnippetComponent', () => {
         { provide: ConfigurationService, useValue: configurationService },
         { provide: CookieService, useValue: cookieService },
         { provide: CodeSnippetService, useValue: codeSnippetService },
-        { provide: CodeFixesService, useValue: codeFixesService },
         { provide: VulnLinesService, useValue: vulnLinesService },
         { provide: ChallengeService, useValue: challengeService },
         provideHttpClient(withInterceptorsFromDi()),
@@ -110,55 +104,10 @@ describe('CodeSnippetComponent', () => {
     expect(component.snippet).toEqual({ snippet: 'Error' })
   })
 
-  it('should set empty fixes on error during fixes retrieval', () => {
-    codeFixesService.get.and.returnValue(throwError('Error'))
-    component.ngOnInit()
-    expect(component.fixes).toBeNull()
-  })
-
   it('selected code lines are set in component', () => {
     component.selectedLines = [42]
     component.addLine([1, 3, 5])
     expect(component.selectedLines).toEqual([1, 3, 5])
-  })
-
-  it('selected code fix is set in component', () => {
-    component.selectedFix = 42
-    component.setFix(1)
-    expect(component.selectedFix).toBe(1)
-  })
-
-  it('selecting a code fix clears previous explanation', () => {
-    component.explanation = 'Wrong answer!'
-    component.setFix(1)
-    expect(component.explanation).toBeNull()
-  })
-
-  it('lock icon is red and "locked" when no fixes are available', () => {
-    component.fixes = null
-    expect(component.lockIcon()).toBe('lock')
-    expect(component.lockColor()).toBe('warn')
-  })
-
-  it('lock icon is red and "locked" by default', () => {
-    component.fixes = ['Fix1', 'Fix2', 'Fix3']
-    component.lock = 0
-    expect(component.lockIcon()).toBe('lock')
-    expect(component.lockColor()).toBe('warn')
-  })
-
-  it('lock icon is red and "locked" when "Find It" phase is unsolved', () => {
-    component.fixes = ['Fix1', 'Fix2', 'Fix3']
-    component.lock = 2
-    expect(component.lockIcon()).toBe('lock')
-    expect(component.lockColor()).toBe('warn')
-  })
-
-  it('lock icon is green and "lock_open" when "Find It" phase is in solved', () => {
-    component.fixes = ['Fix1', 'Fix2', 'Fix3']
-    component.lock = 1
-    expect(component.lockIcon()).toBe('lock_open')
-    expect(component.lockColor()).toBe('accent')
   })
 
   it('result icon is "send" when choice is not yet submitted', () => {
@@ -185,27 +134,4 @@ describe('CodeSnippetComponent', () => {
     expect(component.solved.findIt).toBeTrue()
   })
 
-  xit('correctly submitted vulnerable lines toggle tab to "Fix It" if code fixes exist', waitForAsync(() => {
-    component.tab.setValue(0)
-    component.fixes = ['Fix1', 'Fix2', 'Fix3']
-    vulnLinesService.check.and.returnValue(of({ verdict: true }))
-    component.checkLines()
-    expect(component.tab.value).toBe(1)
-  }))
-
-  it('correctly submitted fix toggles positive verdict for "Fix It" phase', () => {
-    component.tab.setValue(1)
-    component.randomFixes = [{ fix: 'Fix 1', index: 0 }]
-    codeFixesService.check.and.returnValue(of({ verdict: true }))
-    component.checkFix()
-    expect(component.solved.fixIt).toBeTrue()
-  })
-
-  it('should remember the original order of available code fix options when shuffling', () => {
-    component.fixes = ['Fix 1', 'Fix 2', 'Fix 3']
-    component.shuffle()
-    expect(component.randomFixes).toContain({ fix: 'Fix 1', index: 0 })
-    expect(component.randomFixes).toContain({ fix: 'Fix 2', index: 1 })
-    expect(component.randomFixes).toContain({ fix: 'Fix 3', index: 2 })
-  })
 })

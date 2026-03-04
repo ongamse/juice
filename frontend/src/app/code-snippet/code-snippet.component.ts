@@ -4,7 +4,6 @@
  */
 
 import { CodeSnippetService, type CodeSnippet } from '../Services/code-snippet.service'
-import { CodeFixesService } from '../Services/code-fixes.service'
 import { CookieService } from 'ngy-cookie'
 import { ChallengeService } from '../Services/challenge.service'
 import { VulnLinesService, type result } from '../Services/vuln-lines.service'
@@ -19,7 +18,6 @@ import { MatInputModule } from '@angular/material/input'
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field'
 
 import { MatCardModule } from '@angular/material/card'
-import { CodeFixesComponent } from '../code-fixes/code-fixes.component'
 import { MatIconModule } from '@angular/material/icon'
 import { TranslateModule } from '@ngx-translate/core'
 import { CodeAreaComponent } from '../code-area/code-area.component'
@@ -34,12 +32,6 @@ enum ResultState {
 
 export interface Solved {
   findIt: boolean
-  fixIt: boolean
-}
-
-export interface RandomFixes {
-  fix: string
-  index: number
 }
 
 @Component({
@@ -47,29 +39,24 @@ export interface RandomFixes {
   templateUrl: './code-snippet.component.html',
   styleUrls: ['./code-snippet.component.scss'],
   host: { class: 'code-snippet' },
-  imports: [MatDialogTitle, MatDialogContent, MatTabGroup, MatTab, CodeAreaComponent, TranslateModule, MatTabLabel, MatIconModule, CodeFixesComponent, MatDialogActions, MatCardModule, MatFormFieldModule, MatLabel, MatInputModule, FormsModule, MatIconButton, MatButtonModule, MatDialogClose]
+  imports: [MatDialogTitle, MatDialogContent, MatTabGroup, MatTab, CodeAreaComponent, TranslateModule, MatTabLabel, MatIconModule, MatDialogActions, MatCardModule, MatFormFieldModule, MatLabel, MatInputModule, FormsModule, MatIconButton, MatButtonModule, MatDialogClose]
 })
 export class CodeSnippetComponent implements OnInit {
   dialogData = inject(MAT_DIALOG_DATA);
   private readonly configurationService = inject(ConfigurationService);
   private readonly codeSnippetService = inject(CodeSnippetService);
   private readonly vulnLinesService = inject(VulnLinesService);
-  private readonly codeFixesService = inject(CodeFixesService);
   private readonly challengeService = inject(ChallengeService);
   private readonly cookieService = inject(CookieService);
 
   public snippet: CodeSnippet = null
-  public fixes: string [] = null
   public selectedLines: number[]
-  public selectedFix = 0
   public tab: UntypedFormControl = new UntypedFormControl(0)
   public lock: ResultState = ResultState.Undecided
   public result: ResultState = ResultState.Undecided
   public hint: string = null
-  public explanation: string = null
-  public solved: Solved = { findIt: false, fixIt: false }
+  public solved: Solved = { findIt: false }
   public showFeedbackButtons = true
-  public randomFixes: RandomFixes[] = []
 
   ngOnInit (): void {
     this.configurationService.getApplicationConfiguration().subscribe({
@@ -93,31 +80,10 @@ export class CodeSnippetComponent implements OnInit {
         this.snippet = { snippet: err.error }
       }
     })
-    this.codeFixesService.get(this.dialogData.key).subscribe({
-      next: (fixes) => {
-        this.fixes = fixes.fixes
-        if (this.fixes) {
-          this.shuffle()
-        }
-        this.solved.fixIt = this.dialogData.codingChallengeStatus >= 2
-      },
-      error: () => {
-        this.fixes = null
-      }
-    })
   }
 
   addLine = (lines: number[]) => {
     this.selectedLines = lines
-  }
-
-  setFix = (fix: number) => {
-    this.selectedFix = fix
-    this.explanation = null
-  }
-
-  changeFix (event: Event) {
-    this.setFix(parseInt((event.target as HTMLSelectElement).value, 10))
   }
 
   toggleTab = (event: number) => {
@@ -126,16 +92,6 @@ export class CodeSnippetComponent implements OnInit {
     if (event === 0) {
       if (this.solved.findIt) this.result = ResultState.Right
     }
-    if (event === 1) {
-      if (this.solved.fixIt) this.result = ResultState.Right
-    }
-  }
-
-  checkFix = () => {
-    this.codeFixesService.check(this.dialogData.key, this.randomFixes[this.selectedFix].index).subscribe((verdict) => {
-      this.setVerdict(verdict.verdict)
-      this.explanation = verdict.explanation
-    })
   }
 
   checkLines = () => {
@@ -146,9 +102,6 @@ export class CodeSnippetComponent implements OnInit {
   }
 
   lockIcon (): string {
-    if (this.fixes === null) {
-      return 'lock'
-    }
     switch (this.lock) {
       case ResultState.Right:
         return 'lock_open'
@@ -168,13 +121,6 @@ export class CodeSnippetComponent implements OnInit {
     }
   }
 
-  shuffle () {
-    this.randomFixes = this.fixes
-      .map((fix, index) => ({ fix, index, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ fix, index }) => ({ fix, index }))
-  }
-
   setVerdict = (verdict: boolean) => {
     if (this.result === ResultState.Right) return
     if (verdict) {
@@ -191,28 +137,12 @@ export class CodeSnippetComponent implements OnInit {
           },
           error: (err) => { console.log(err) }
         })
-      } else {
-        this.solved.fixIt = true
-        this.challengeService.continueCodeFixIt().subscribe({
-          next: (continueCode) => {
-            if (!continueCode) {
-              throw (new Error('Received invalid continue code from the server!'))
-            }
-            const expires = new Date()
-            expires.setFullYear(expires.getFullYear() + 1)
-            this.cookieService.put('continueCodeFixIt', continueCode, { expires })
-          },
-          error: (err) => { console.log(err) }
-        })
       }
       this.result = ResultState.Right
       this.lock = ResultState.Right
       import('../../confetti').then(module => {
         module.shootConfetti()
       })
-        .then(() => {
-          if (this.tab.value === 0 && this.fixes !== null) this.toggleTab(1)
-        })
     } else {
       this.result = ResultState.Wrong
     }

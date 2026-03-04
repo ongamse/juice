@@ -34,12 +34,10 @@ export class LocalBackupService {
 
     const continueCode = this.challengeService.continueCode()
     const continueCodeFindIt = this.challengeService.continueCodeFindIt()
-    const continueCodeFixIt = this.challengeService.continueCodeFixIt()
-    forkJoin([continueCode, continueCodeFindIt, continueCodeFixIt]).subscribe({
-      next: ([continueCode, continueCodeFindIt, continueCodeFixIt]) => {
+    forkJoin([continueCode, continueCodeFindIt]).subscribe({
+      next: ([continueCode, continueCodeFindIt]) => {
         backup.continueCode = continueCode
         backup.continueCodeFindIt = continueCodeFindIt
-        backup.continueCodeFixIt = continueCodeFixIt
         const blob = new Blob([JSON.stringify(backup)], { type: 'text/plain;charset=utf-8' })
         saveAs(blob, `${fileName}-${new Date().toISOString().split('T')[0]}.json`)
       },
@@ -47,7 +45,6 @@ export class LocalBackupService {
         console.log('Failed to retrieve continue code(s) for backup from server. Using cookie values as fallback.')
         backup.continueCode = this.cookieService.get('continueCode') ? this.cookieService.get('continueCode') : undefined
         backup.continueCodeFindIt = this.cookieService.get('continueCodeFindIt') ? this.cookieService.get('continueCodeFindIt') : undefined
-        backup.continueCodeFixIt = this.cookieService.get('continueCodeFixIt') ? this.cookieService.get('continueCodeFixIt') : undefined
         const blob = new Blob([JSON.stringify(backup)], { type: 'text/plain;charset=utf-8' })
         saveAs(blob, `${fileName}-${new Date().toISOString().split('T')[0]}.json`)
       }
@@ -63,7 +60,6 @@ export class LocalBackupService {
         this.restoreCookie('cookieconsent_status', backup.banners?.cookieConsentStatus)
         this.restoreCookie('language', backup.language)
         this.restoreCookie('continueCodeFindIt', backup.continueCodeFindIt)
-        this.restoreCookie('continueCodeFixIt', backup.continueCodeFixIt)
         this.restoreCookie('continueCode', backup.continueCode)
 
         const snackBarRef = this.snackBar.open('Backup has been restored from ' + backupFile.name, 'Apply changes now', {
@@ -73,8 +69,7 @@ export class LocalBackupService {
         snackBarRef.onAction().subscribe(() => {
           const hackingProgress = backup.continueCode ? this.challengeService.restoreProgress(encodeURIComponent(backup.continueCode)) : of(true)
           const findItProgress = backup.continueCodeFindIt ? this.challengeService.restoreProgressFindIt(encodeURIComponent(backup.continueCodeFindIt)) : of(true)
-          const fixItProgress = backup.continueCodeFixIt ? this.challengeService.restoreProgressFixIt(encodeURIComponent(backup.continueCodeFixIt)) : of(true)
-          forkJoin([hackingProgress, findItProgress, fixItProgress]).subscribe({
+          forkJoin([hackingProgress, findItProgress]).subscribe({
             next: () => {
               location.reload()
             },
