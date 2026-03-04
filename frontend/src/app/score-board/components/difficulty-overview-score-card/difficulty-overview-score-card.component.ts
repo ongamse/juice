@@ -67,14 +67,14 @@ export class DifficultyOverviewScoreCardComponent implements OnInit, OnChanges {
 
     this.difficultySummaries = DifficultyOverviewScoreCardComponent.calculateDifficultySummaries(this.allChallenges)
 
-    this.totalChallenges = this.allChallenges.length + availableCodingChallenges.length * 2
+    this.totalChallenges = this.allChallenges.length + availableCodingChallenges.length
     this.solvedChallenges = solvedHackingChallenges + codingScore
   }
 
   static calculateDifficultySummaries (challenges: EnrichedChallenge[]): DifficultySummary[] {
     const summariesLookup: DifficultySummaries = structuredClone(INITIAL_SUMMARIES)
     for (const challenge of challenges) {
-      summariesLookup[challenge.difficulty].availableChallenges += challenge.hasCodingChallenge ? 3 : 1
+      summariesLookup[challenge.difficulty].availableChallenges += challenge.hasCodingChallenge ? 2 : 1
       if (challenge.solved) {
         summariesLookup[challenge.difficulty].solvedChallenges++
         summariesLookup[challenge.difficulty].solvedChallenges += challenge.hasCodingChallenge ? challenge.codingChallengeStatus : 0
