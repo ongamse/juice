@@ -34,9 +34,9 @@ InferCreationAttributes<User>
   declare isActive: CreationOptional<boolean>
 }
 
-const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start weakPasswordChallenge
+const UserModelInit = (sequelize: Sequelize) => {
   User.init(
-    { // vuln-code-snippet hide-start
+    {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -70,13 +70,13 @@ const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start wea
           }
           this.setDataValue('email', email)
         }
-      }, // vuln-code-snippet hide-end
+      },
       password: {
         type: DataTypes.STRING,
         set (clearTextPassword: string) {
-          this.setDataValue('password', security.hash(clearTextPassword)) // vuln-code-snippet vuln-line weakPasswordChallenge
+          this.setDataValue('password', security.hash(clearTextPassword))
         }
-      }, // vuln-code-snippet end weakPasswordChallenge
+      },
       role: {
         type: DataTypes.STRING,
         defaultValue: 'customer',
