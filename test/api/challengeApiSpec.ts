@@ -113,25 +113,3 @@ describe('/rest/continue-code-findIt', () => {
       .expect('status', 200)
   })
 })
-
-describe('/rest/continue-code-fixIt', () => {
-  it('GET can retrieve continue code for currently solved challenges', () => {
-    return frisby.get(REST_URL + '/continue-code-fixIt')
-      .expect('status', 200)
-  })
-
-  it('PUT invalid continue code is rejected (alphanumeric)', () => {
-    return frisby.put(REST_URL + '/continue-code-fixIt/apply/ThisIsDefinitelyNotAValidContinueCode')
-      .expect('status', 404)
-  })
-
-  it('PUT completely invalid continue code is rejected (non-alphanumeric)', () => {
-    return frisby.put(REST_URL + '/continue-code-fixIt/apply/%3Cimg%20src=nonexist1%20onerror=alert()%3E')
-      .expect('status', 404)
-  })
-
-  it('PUT continue code for more than one challenge is accepted', () => { // using [15, 69] here which both have a Coding Challenge
-    return frisby.put(REST_URL + '/continue-code-fixIt/apply/y28BEPE2k3yRrdz5p6DGqJONnj41n5UEWawYWgBMoVmL79bKZ8Qve0Xl5QLW')
-      .expect('status', 200)
-  })
-})

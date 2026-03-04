@@ -30,7 +30,7 @@ const CHALLENGE_2 = {
   mitigationUrl: 'https://owasp.example.com',
   name: 'challenge two',
   solved: true,
-  codingChallengeStatus: 2,
+  codingChallengeStatus: 1,
   tagList: ['easy'],
   disabledEnv: null,
   tutorialOrder: 2

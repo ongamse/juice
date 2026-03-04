@@ -1,4 +1,3 @@
-import { Op } from 'sequelize'
 import { type ChallengeKey, ChallengeModel } from '../models/challenge'
 import { HintModel } from '../models/hint'
 import logger from './logger'
@@ -6,7 +5,7 @@ import config from 'config'
 import sanitizeHtml from 'sanitize-html'
 import colors from 'colors/safe'
 import * as utils from './utils'
-import { calculateCheatScore, calculateFindItCheatScore, calculateFixItCheatScore } from './antiCheat'
+import { calculateCheatScore, calculateFindItCheatScore } from './antiCheat'
 import * as webhook from './webhook'
 import * as accuracy from './accuracy'
 import { type Server } from 'socket.io'
@@ -63,7 +62,7 @@ export const sendNotification = function (challenge: { difficulty?: number, key:
   }
 }
 
-export const sendCodingChallengeNotification = function (challenge: { key: string, codingChallengeStatus: 0 | 1 | 2 }) {
+export const sendCodingChallengeNotification = function (challenge: { key: string, codingChallengeStatus: 0 | 1 }) {
   if (challenge.codingChallengeStatus > 0) {
     const notification = {
       key: challenge.key,
@@ -97,24 +96,12 @@ export const findChallengeById = (challengeId: number) => {
 
 export const solveFindIt = async function (key: ChallengeKey, isRestore: boolean = false) {
   const solvedChallenge = challenges[key]
-  await ChallengeModel.update({ codingChallengeStatus: 1 }, { where: { key, codingChallengeStatus: { [Op.lt]: 2 } } })
+  await ChallengeModel.update({ codingChallengeStatus: 1 }, { where: { key } })
   logger.info(`${isRestore ? colors.grey('Restored') : colors.green('Solved')} 'Find It' phase of coding challenge ${colors.cyan(solvedChallenge.key)} (${solvedChallenge.name})`)
   if (!isRestore) {
     accuracy.storeFindItVerdict(solvedChallenge.key, true)
     accuracy.calculateFindItAccuracy(solvedChallenge.key)
     await calculateFindItCheatScore(solvedChallenge)
     sendCodingChallengeNotification({ key, codingChallengeStatus: 1 })
-  }
-}
-
-export const solveFixIt = async function (key: ChallengeKey, isRestore: boolean = false) {
-  const solvedChallenge = challenges[key]
-  await ChallengeModel.update({ codingChallengeStatus: 2 }, { where: { key } })
-  logger.info(`${isRestore ? colors.grey('Restored') : colors.green('Solved')} 'Fix It' phase of coding challenge ${colors.cyan(solvedChallenge.key)} (${solvedChallenge.name})`)
-  if (!isRestore) {
-    accuracy.storeFixItVerdict(solvedChallenge.key, true)
-    accuracy.calculateFixItAccuracy(solvedChallenge.key)
-    await calculateFixItCheatScore(solvedChallenge)
-    sendCodingChallengeNotification({ key, codingChallengeStatus: 2 })
   }
 }

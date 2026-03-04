@@ -100,7 +100,7 @@ function getCompleteChallengeStatus (
   if (!challenge.hasCodingChallenge) {
     return challenge.solved ? 'solved' : 'unsolved'
   } else {
-    if (challenge.codingChallengeStatus === 2) {
+    if (challenge.codingChallengeStatus === 1) {
       return 'solved'
     }
     return 'partially-solved'

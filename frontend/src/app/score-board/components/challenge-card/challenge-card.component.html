@@ -40,12 +40,12 @@
         [disabled]="challenge.solved === false && applicationConfiguration.challenges.codingChallengesEnabled !== 'always'"
       [ngClass]="{
         'partially-completed': challenge.codingChallengeStatus === 1,
-        'completed': challenge.codingChallengeStatus === 2
+        'completed': challenge.codingChallengeStatus === 1
       }"
         [matTooltip]="(challenge.solved ? 'LAUNCH_CODING_CHALLENGE' : 'SOLVE_HACKING_CHALLENGE') | translate"
         >
         @if (challenge.codingChallengeStatus !== 0) {
-          <span class="badge-status">{{ challenge.codingChallengeStatus }}/2</span>
+          <span class="badge-status">{{ challenge.codingChallengeStatus }}/1</span>
         }
         <mat-icon>code</mat-icon>
       </button>
