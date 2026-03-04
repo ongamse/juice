@@ -185,23 +185,4 @@ describe('ScoreBoardComponent', () => {
       ).codingChallengeStatus
     ).toBe(1)
   })
-
-  it('should mark fix it code challenges as solved on "code challenge solved" websocket', (): void => {
-    expect(
-      component.filteredChallenges.find(
-        (challenge) => challenge.key === 'challenge-2'
-      ).codingChallengeStatus
-    ).toBe(1)
-
-    component.onCodeChallengeSolvedWebsocket({
-      key: 'challenge-2',
-      codingChallengeStatus: 2
-    })
-
-    expect(
-      component.filteredChallenges.find(
-        (challenge) => challenge.key === 'challenge-2'
-      ).codingChallengeStatus
-    ).toBe(2)
-  })
 })

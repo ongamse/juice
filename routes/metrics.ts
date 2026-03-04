@@ -173,12 +173,6 @@ export function observeMetrics () {
           throw new Error('Unable to retrieve and count such challenges. Please try again')
         })
 
-        ChallengeModel.count({ where: { codingChallengeStatus: { [Op.eq]: 2 } } }).then((count: number) => {
-          codingChallengesProgressMetrics.set({ phase: 'fix it' }, count)
-        }).catch((_: unknown) => {
-          throw new Error('Unable to retrieve and count such challenges. Please try again')
-        })
-
         ChallengeModel.count({ where: { codingChallengeStatus: { [Op.ne]: 0 } } }).then((count: number) => {
           codingChallengesProgressMetrics.set({ phase: 'unsolved' }, challenges.length - count)
         }).catch((_: unknown) => {
@@ -188,7 +182,6 @@ export function observeMetrics () {
 
       cheatScoreMetrics.set(totalCheatScore())
       accuracyMetrics.set({ phase: 'find it' }, accuracy.totalFindItAccuracy())
-      accuracyMetrics.set({ phase: 'fix it' }, accuracy.totalFixItAccuracy())
 
       ordersCollection.count({}).then((orderCount: number) => {
         if (orderCount) orderMetrics.set(orderCount)

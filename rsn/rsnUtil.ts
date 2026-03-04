@@ -4,7 +4,6 @@ import { diffLines, structuredPatch } from 'diff'
 
 import { retrieveCodeSnippet } from '../routes/vulnCodeSnippet'
 
-const fixesPath = 'data/static/codefixes'
 const cacheFile = 'rsn/cache.json'
 
 type CacheData = Record<string, {
@@ -13,9 +12,7 @@ type CacheData = Record<string, {
 }>
 
 function readFiles () {
-  const files = fs.readdirSync(fixesPath)
-  const keys = files.filter((file: string) => !file.endsWith('.info.yml') && !file.endsWith('.editorconfig'))
-  return keys
+  return [] as string[]
 }
 
 function writeToFile (json: CacheData) {
@@ -47,7 +44,7 @@ const checkDiffs = async (keys: string[]) => {
       .then(snippet => {
         if (snippet == null) return
         process.stdout.write(val + ': ')
-        const fileData = fs.readFileSync(fixesPath + '/' + val).toString()
+        const fileData = ''
         const diff = diffLines(filterString(fileData), filterString(snippet.snippet))
         let line = 0
         for (const part of diff) {
@@ -104,7 +101,7 @@ const checkDiffs = async (keys: string[]) => {
 }
 
 async function seePatch (file: string) {
-  const fileData = fs.readFileSync(fixesPath + '/' + file).toString()
+  const fileData = ''
   const snippet = await retrieveCodeSnippet(file.split('_')[0])
   if (snippet == null) return
   const patch = structuredPatch(file, file, filterString(snippet.snippet), filterString(fileData))

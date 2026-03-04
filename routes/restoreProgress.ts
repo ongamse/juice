@@ -57,24 +57,3 @@ export function restoreProgressFindIt () {
     }
   }
 }
-
-export function restoreProgressFixIt () {
-  const hashids = new Hashids('yet another salt for the fixIt challenges', 60, hashidsAlphabet)
-  return async ({ params }: Request, res: Response) => {
-    const continueCodeFixIt = params.continueCode
-    if (!hashidRegexp.test(continueCodeFixIt)) {
-      return res.status(404).send(invalidContinueCode)
-    }
-    const idsFixIt = hashids.decode(continueCodeFixIt)
-    if (idsFixIt.length > 0) {
-      for (const challenge of Object.values(challenges)) {
-        if (idsFixIt.includes(challenge.id)) {
-          await challengeUtils.solveFixIt(challenge.key, true)
-        }
-      }
-      res.json({ data: idsFixIt.length + ' solved challenges have been restored.' })
-    } else {
-      res.status(404).send(invalidContinueCode)
-    }
-  }
-}
