@@ -4,7 +4,7 @@ set -e
 DEFECTDOJO_URL="${DEFECTDOJO_URL}"
 DEFECTDOJO_API_TOKEN="${DEFECTDOJO_API_TOKEN}"
 PRODUCT_NAME="${PRODUCT_NAME:-OWASP Juice Shop}"
-ENGAGEMENT_NAME="${ENGAGEMENT_NAME:-CI/CD Run}"
+ENGAGEMENT_NAME="${ENGAGEMENT_NAME:- Security Scans}"
 BUILD_ID="${BUILD_ID}"
 COMMIT_HASH="${COMMIT_HASH}"
 BRANCH_TAG="${BRANCH_TAG}"
@@ -34,31 +34,56 @@ find_or_create_product() {
     fi
 }
 
-create_engagement() {
+find_or_create_engagement() {
     local product_id=$1
     local today=$(date +%Y-%m-%d)
-    local data=$(jq -n \
-        --arg name "${ENGAGEMENT_NAME}" --arg product "${product_id}" \
-        --arg date "${today}" --arg build "${BUILD_ID}" \
-        --arg commit "${COMMIT_HASH}" --arg branch "${BRANCH_TAG}" \
-        --arg uri "${SOURCE_CODE_MANAGEMENT_URI}" \
-        '{name:$name, product:($product|tonumber), engagement_type:"CI/CD",
-          target_start:$date, target_end:$date, status:"In Progress",
-          build_id:$build, commit_hash:$commit, branch_tag:$branch,
-          source_code_management_uri:$uri}')
 
-    local response=$(api_request "POST" "engagements/" "${data}")
-    local id=$(echo "${response}" | jq -r '.id')
-    [ -n "$id" ] && [ "$id" != "null" ] || { echo "Failed to create engagement" >&2; exit 1; }
-    echo "${id}"
+    # Search for an existing engagement with the same name in this product
+    local encoded_name=$(echo "${ENGAGEMENT_NAME}" | jq -sRr @uri)
+    local response=$(api_request "GET" "engagements/?product=${product_id}&name=${encoded_name}" "")
+    local count=$(echo "${response}" | jq -r '.count // 0')
+
+    if [ "$count" -gt 0 ]; then
+        local id=$(echo "${response}" | jq -r '.results[0].id')
+        echo "Reusing existing engagement ${id}" >&2
+
+        # Update the engagement with latest metadata
+        local patch_data=$(jq -n \
+            --arg date "${today}" --arg build "${BUILD_ID}" \
+            --arg commit "${COMMIT_HASH}" --arg branch "${BRANCH_TAG}" \
+            --arg uri "${SOURCE_CODE_MANAGEMENT_URI}" \
+            '{target_end:$date, status:"In Progress",
+              build_id:$build, commit_hash:$commit, branch_tag:$branch,
+              source_code_management_uri:$uri}')
+        api_request "PATCH" "engagements/${id}/" "${patch_data}" > /dev/null || true
+
+        echo "${id}"
+    else
+        local data=$(jq -n \
+            --arg name "${ENGAGEMENT_NAME}" --arg product "${product_id}" \
+            --arg date "${today}" --arg build "${BUILD_ID}" \
+            --arg commit "${COMMIT_HASH}" --arg branch "${BRANCH_TAG}" \
+            --arg uri "${SOURCE_CODE_MANAGEMENT_URI}" \
+            '{name:$name, product:($product|tonumber), engagement_type:"CI/CD",
+              target_start:$date, target_end:$date, status:"In Progress",
+              build_id:$build, commit_hash:$commit, branch_tag:$branch,
+              source_code_management_uri:$uri,
+              deduplication_on_engagement:true}')
+
+        local response=$(api_request "POST" "engagements/" "${data}")
+        local id=$(echo "${response}" | jq -r '.id')
+        [ -n "$id" ] && [ "$id" != "null" ] || { echo "Failed to create engagement" >&2; exit 1; }
+        echo "Created new engagement ${id}" >&2
+        echo "${id}"
+    fi
 }
 
-import_scan() {
+reimport_scan() {
     local engagement_id=$1 scan_file=$2 scan_type=$3
     [ -f "${scan_file}" ] || return 0
 
-    echo "Importing ${scan_type}: ${scan_file}"
-    curl -sf -X POST "${DEFECTDOJO_URL}/api/v2/import-scan/" \
+    echo "Reimporting ${scan_type}: ${scan_file}"
+    curl -sf -X POST "${DEFECTDOJO_URL}/api/v2/reimport-scan/" \
         -H "Authorization: Token ${DEFECTDOJO_API_TOKEN}" \
         -F "scan_type=${scan_type}" \
         -F "file=@${scan_file}" \
@@ -66,7 +91,10 @@ import_scan() {
         -F "minimum_severity=Info" \
         -F "active=true" \
         -F "verified=false" \
-        -F "scan_date=$(date +%Y-%m-%d)" > /dev/null || echo "  Warning: failed to import ${scan_type}"
+        -F "scan_date=$(date +%Y-%m-%d)" \
+        -F "close_old_findings=true" \
+        -F "close_old_findings_product_scope=false" \
+        -F "do_not_reactivate=false" > /dev/null || echo "  Warning: failed to reimport ${scan_type}"
 }
 
 main() {
@@ -76,13 +104,13 @@ main() {
     fi
 
     PRODUCT_ID=$(find_or_create_product)
-    ENGAGEMENT_ID=$(create_engagement "$PRODUCT_ID")
+    ENGAGEMENT_ID=$(find_or_create_engagement "$PRODUCT_ID")
 
-    import_scan "$ENGAGEMENT_ID" "semgrep-results.json"          "Semgrep JSON Report"
-    import_scan "$ENGAGEMENT_ID" "trivy-fs-results.json"         "Trivy Scan"
-    import_scan "$ENGAGEMENT_ID" "trivy-image-results.json"      "Trivy Scan"
-    import_scan "$ENGAGEMENT_ID" "report_xml.xml"                "ZAP Scan"
-    import_scan "$ENGAGEMENT_ID" "dependency-check-report.xml"   "Dependency Check Scan"
+    reimport_scan "$ENGAGEMENT_ID" "semgrep-results.json"          "Semgrep JSON Report"
+    reimport_scan "$ENGAGEMENT_ID" "trivy-fs-results.json"         "Trivy Scan"
+    reimport_scan "$ENGAGEMENT_ID" "trivy-image-results.json"      "Trivy Scan"
+    reimport_scan "$ENGAGEMENT_ID" "report_xml.xml"                "ZAP Scan"
+    reimport_scan "$ENGAGEMENT_ID" "dependency-check-report.xml"   "Dependency Check Scan"
 
     api_request "PATCH" "engagements/${ENGAGEMENT_ID}/" '{"status":"Completed"}' > /dev/null || true
 

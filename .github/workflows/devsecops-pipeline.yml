@@ -7,7 +7,7 @@ on:
     branches: [master, develop]
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: "20.x"
   DOCKER_IMAGE_NAME: juice-shop
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Run Semgrep
         run: |
@@ -83,19 +83,19 @@ jobs:
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'json'
-          output: 'trivy-fs-results.json'
+          scan-type: "fs"
+          scan-ref: "."
+          format: "json"
+          output: "trivy-fs-results.json"
         continue-on-error: true
 
       - name: Trivy image scan
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'image'
-          image-ref: '${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}'
-          format: 'json'
-          output: 'trivy-image-results.json'
+          scan-type: "image"
+          image-ref: "${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+          format: "json"
+          output: "trivy-image-results.json"
         continue-on-error: true
 
       - uses: actions/setup-node@v4
@@ -110,10 +110,10 @@ jobs:
       - name: OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: 'juice-shop'
-          path: '.'
-          format: 'XML'
-          out: '.'
+          project: "juice-shop"
+          path: "."
+          format: "XML"
+          out: "."
           args: '--exclude "**/test/files/**"'
         continue-on-error: true
 
@@ -151,8 +151,8 @@ jobs:
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
-          target: 'http://localhost:3000'
-          cmd_options: '-j -x report_xml.xml'
+          target: "http://localhost:3000"
+          cmd_options: "-j -x report_xml.xml"
           allow_issue_writing: false
         continue-on-error: true
 
@@ -197,7 +197,7 @@ jobs:
           DEFECTDOJO_URL: ${{ secrets.DEFECTDOJO_URL }}
           DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
           PRODUCT_NAME: "OWASP Juice Shop"
-          ENGAGEMENT_NAME: "CI/CD Run - ${{ github.run_id }}"
+          ENGAGEMENT_NAME: "CI/CD Security Scans"
           BUILD_ID: "${{ github.run_id }}"
           COMMIT_HASH: "${{ github.sha }}"
           BRANCH_TAG: "${{ github.ref_name }}"
@@ -210,6 +210,6 @@ jobs:
       - name: Summary
         run: |
           echo "## DefectDojo Integration Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Engagement**: CI/CD Run - ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Engagement**: CI/CD Security Scans" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
