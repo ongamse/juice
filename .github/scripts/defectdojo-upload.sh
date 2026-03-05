@@ -78,12 +78,16 @@ find_or_create_engagement() {
     fi
 }
 
-reimport_scan() {
+upload_scan() {
     local engagement_id=$1 scan_file=$2 scan_type=$3
     [ -f "${scan_file}" ] || return 0
 
+    local scan_date
+    scan_date=$(date +%Y-%m-%d)
+
+    # Try reimport first (updates existing test), fall back to import (creates new test)
     echo "Reimporting ${scan_type}: ${scan_file}"
-    curl -sf -X POST "${DEFECTDOJO_URL}/api/v2/reimport-scan/" \
+    if ! curl -sf -X POST "${DEFECTDOJO_URL}/api/v2/reimport-scan/" \
         -H "Authorization: Token ${DEFECTDOJO_API_TOKEN}" \
         -F "scan_type=${scan_type}" \
         -F "file=@${scan_file}" \
@@ -91,10 +95,24 @@ reimport_scan() {
         -F "minimum_severity=Info" \
         -F "active=true" \
         -F "verified=false" \
-        -F "scan_date=$(date +%Y-%m-%d)" \
+        -F "scan_date=${scan_date}" \
         -F "close_old_findings=true" \
         -F "close_old_findings_product_scope=false" \
-        -F "do_not_reactivate=false" > /dev/null || echo "  Warning: failed to reimport ${scan_type}"
+        -F "do_not_reactivate=false" > /dev/null 2>&1; then
+
+        echo "  Reimport failed, importing as new scan..."
+        curl -sf -X POST "${DEFECTDOJO_URL}/api/v2/import-scan/" \
+            -H "Authorization: Token ${DEFECTDOJO_API_TOKEN}" \
+            -F "scan_type=${scan_type}" \
+            -F "file=@${scan_file}" \
+            -F "engagement=${engagement_id}" \
+            -F "minimum_severity=Info" \
+            -F "active=true" \
+            -F "verified=false" \
+            -F "scan_date=${scan_date}" \
+            -F "close_old_findings=true" \
+            -F "close_old_findings_product_scope=false" > /dev/null || echo "  Warning: failed to import ${scan_type}"
+    fi
 }
 
 main() {
@@ -106,11 +124,11 @@ main() {
     PRODUCT_ID=$(find_or_create_product)
     ENGAGEMENT_ID=$(find_or_create_engagement "$PRODUCT_ID")
 
-    reimport_scan "$ENGAGEMENT_ID" "semgrep-results.json"          "Semgrep JSON Report"
-    reimport_scan "$ENGAGEMENT_ID" "trivy-fs-results.json"         "Trivy Scan"
-    reimport_scan "$ENGAGEMENT_ID" "trivy-image-results.json"      "Trivy Scan"
-    reimport_scan "$ENGAGEMENT_ID" "report_xml.xml"                "ZAP Scan"
-    reimport_scan "$ENGAGEMENT_ID" "dependency-check-report.xml"   "Dependency Check Scan"
+    upload_scan "$ENGAGEMENT_ID" "semgrep-results.json"          "Semgrep JSON Report"
+    upload_scan "$ENGAGEMENT_ID" "trivy-fs-results.json"         "Trivy Scan"
+    upload_scan "$ENGAGEMENT_ID" "trivy-image-results.json"      "Trivy Scan"
+    upload_scan "$ENGAGEMENT_ID" "report_xml.xml"                "ZAP Scan"
+    upload_scan "$ENGAGEMENT_ID" "dependency-check-report.xml"   "Dependency Check Scan"
 
     api_request "PATCH" "engagements/${ENGAGEMENT_ID}/" '{"status":"Completed"}' > /dev/null || true
 
