@@ -10,8 +10,9 @@ jobs:
     name: DockerX build and wiz CLI scan
     runs-on: ubuntu-latest
     env:
-      SCAN_PATH: "."
-      POLICY: "jibaek SAST policy"
+      IMAGE_SCAN_PATH: "."
+      CODE_POLICY: "jibaek vulnerabilities policy"
+      IMAGE_POLICY: "jibaek SAST policy"
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -69,14 +70,14 @@ jobs:
         env:
           WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
-        run: ./wizcli scan dir . --policies "$POLICY"
+        run: ./wizcli scan dir $IMAGE_SCAN_PATH --policies "$CODE_POLICY"
      
 
       - name: Run wiz-cli container image scan
         env:
           WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
-        run: ./wizcli scan container-image ${{ vars.ACR_PATH }}/${{ github.event.repository.name }}/${{ github.event.repository.name }}:${{ env.COMMIT_SHORT_SHA }} --policies "$POLICY"
+        run: ./wizcli scan container-image ${{ vars.ACR_PATH }}/${{ github.event.repository.name }}/${{ github.event.repository.name }}:${{ env.COMMIT_SHORT_SHA }} --policies "$IMAGE_POLICY"
 
 
       # - name: Authenticate to Wiz
@@ -91,6 +92,9 @@ jobs:
 
 
       - name: Fetch digest of Docker image for Graph enrichment
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
         run: |
           ./wizcli tag ${{ vars.ACR_PATH }}/${{ github.event.repository.name }}/${{ github.event.repository.name }}:${{ env.COMMIT_SHORT_SHA }} \
             --digest "${{ steps.build-image.outputs.digest }}"
