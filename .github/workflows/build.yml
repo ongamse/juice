@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_SCAN_PATH: "."
-      CODE_POLICY: "jibaek vulnerabilities policy"
-      IMAGE_POLICY: "jibaek SAST policy"
+      CODE_POLICY: "jibaek SAST policy"
+      IMAGE_POLICY: "jibaek vulnerabilities policy"
     permissions:
       contents: 'read'
       id-token: 'write'
