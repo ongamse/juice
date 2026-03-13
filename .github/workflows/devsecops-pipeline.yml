@@ -71,6 +71,8 @@ jobs:
     name: SCA
     runs-on: ubuntu-latest
     needs: build-and-test
+    env:
+      TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
     steps:
       - uses: actions/checkout@v4
 
@@ -86,6 +88,7 @@ jobs:
           scan-type: "fs"
           scan-ref: "."
           scanners: "vuln"
+          vuln-type: "os,library"
           format: "json"
           output: "trivy-fs-results.json"
         continue-on-error: true
@@ -96,8 +99,116 @@ jobs:
           scan-type: "image"
           image-ref: "${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
           scanners: "vuln"
+          vuln-type: "os,library"
           format: "json"
           output: "trivy-image-results.json"
+        continue-on-error: true
+
+      - name: Enrich Trivy scan results with EPSS scores
+        run: |
+          python3 - <<'PY'
+          import json
+          import re
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          CVE_PATTERN = re.compile(r'\bCVE-\d{4}-\d{4,}\b', re.IGNORECASE)
+          EPSS_API_URL = 'https://api.first.org/data/v1/epss'
+          CHUNK_SIZE = 100
+
+          def extract_cves(vulnerability):
+            values = [
+              vulnerability.get('VulnerabilityID', ''),
+              vulnerability.get('PrimaryURL', ''),
+              vulnerability.get('Title', ''),
+            ]
+            values.extend(vulnerability.get('References', []) or [])
+
+            cves = []
+            for value in values:
+              if not isinstance(value, str):
+                continue
+              for match in CVE_PATTERN.findall(value):
+                cve = match.upper()
+                if cve not in cves:
+                  cves.append(cve)
+            return cves
+
+          def fetch_epss(cves):
+            scores = {}
+            ordered = sorted(cves)
+
+            for index in range(0, len(ordered), CHUNK_SIZE):
+              chunk = ordered[index:index + CHUNK_SIZE]
+              query = urllib.parse.urlencode({'cve': ','.join(chunk)})
+              request = urllib.request.Request(
+                f'{EPSS_API_URL}?{query}',
+                headers={'User-Agent': 'juice-shop-devsecops-pipeline'},
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                payload = json.loads(response.read().decode('utf-8'))
+              for item in payload.get('data', []):
+                cve = item.get('cve')
+                if cve:
+                  scores[cve.upper()] = item
+            return scores
+
+          files = sorted(Path.cwd().glob('trivy-*.json'))
+          if not files:
+            print('No Trivy JSON files found, skipping EPSS enrichment')
+            raise SystemExit(0)
+
+          documents = []
+          all_cves = set()
+
+          for path in files:
+            try:
+              with path.open(encoding='utf-8') as handle:
+                data = json.load(handle)
+            except FileNotFoundError:
+              print(f'{path.name}: file not found, skipping')
+              continue
+            except json.JSONDecodeError as exc:
+              print(f'{path.name}: invalid JSON ({exc}), skipping')
+              continue
+
+            documents.append((path, data))
+            for result in data.get('Results', []):
+              for vulnerability in result.get('Vulnerabilities', []) or []:
+                all_cves.update(extract_cves(vulnerability))
+
+          if not documents:
+            print('No readable Trivy JSON files found, skipping EPSS enrichment')
+            raise SystemExit(0)
+
+          if not all_cves:
+            print('No CVE identifiers or aliases found in Trivy results, skipping EPSS enrichment')
+            raise SystemExit(0)
+
+          try:
+            epss_scores = fetch_epss(all_cves)
+          except Exception as exc:
+            print(f'EPSS API lookup failed: {exc}')
+            raise SystemExit(0)
+
+          for path, data in documents:
+            enriched_count = 0
+            for result in data.get('Results', []):
+              for vulnerability in result.get('Vulnerabilities', []) or []:
+                cves = extract_cves(vulnerability)
+                match = next((cve for cve in cves if cve in epss_scores), None)
+                if not match:
+                  continue
+                vulnerability['EPSS'] = float(epss_scores[match]['epss'])
+                vulnerability['EPSSPercentile'] = float(epss_scores[match]['percentile'])
+                enriched_count += 1
+
+            with path.open('w', encoding='utf-8') as handle:
+              json.dump(data, handle)
+
+            print(f'{path.name}: enriched {enriched_count} vulnerabilities with EPSS scores')
+          PY
         continue-on-error: true
 
       - uses: actions/setup-node@v4
