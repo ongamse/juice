@@ -128,6 +128,52 @@ find_or_create_engagement() {
 }
 
 # ---------------------------------------------------------------------------
+# enrich_trivy_with_epss: Normalises GHSA→CVE IDs and injects EPSS scores
+# (fetched from the FIRST.org API) into a Trivy JSON file in-place before
+# upload.  Without CVE IDs, DefectDojo cannot resolve EPSS scores at all;
+# without the pre-injected EPSS payload, scores only appear if DefectDojo's
+# own background-enrichment task happens to run after import.
+#
+# Trivy often reports GHSA identifiers as the primary VulnerabilityID for
+# npm/Go advisories.  The advisory's Aliases array typically carries the
+# canonical CVE ID — we promote that to VulnerabilityID so DefectDojo
+# stores the finding under a CVE it can actually look up.
+#
+# EPSS data is injected as:
+#   "EPSS": [{"cve": "CVE-…", "epss": <float>, "percentile": <float>}]
+# which matches the Trivy v0.50+ JSON schema that DefectDojo's Trivy parser
+# already reads natively.
+# ---------------------------------------------------------------------------
+enrich_trivy_with_epss() {
+    local input_file=$1
+
+    if [ ! -f "${input_file}" ]; then
+        return 0
+    fi
+
+    if ! command -v python3 &>/dev/null; then
+        echo "  python3 not found — skipping EPSS enrichment for ${input_file}" >&2
+        return 0
+    fi
+
+    local script_dir script_path
+    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    script_path="${script_dir}/trivy-epss-enricher.py"
+
+    if [ ! -f "${script_path}" ]; then
+        echo "  EPSS helper script not found at ${script_path} — skipping ${input_file}" >&2
+        return 0
+    fi
+
+    echo "  Enriching ${input_file} with EPSS scores..."
+
+    python3 "${script_path}" "${input_file}" || {
+        echo "  EPSS enrichment failed for ${input_file}" >&2
+        return 0
+    }
+}
+
+# ---------------------------------------------------------------------------
 # upload_scan: uploads a scan file using ONLY the reimport-scan endpoint.
 #
 # The reimport endpoint handles everything:
@@ -241,6 +287,12 @@ main() {
     ENGAGEMENT_ID=$(find_or_create_engagement "$PRODUCT_ID") || exit 1
     echo "Engagement ID: ${ENGAGEMENT_ID}"
     echo ""
+
+    # Normalize GHSA IDs → CVE IDs and inject EPSS scores from FIRST.org into
+    # Trivy JSON files before upload so DefectDojo can display EPSS data for
+    # every finding without relying on its background-enrichment task.
+    enrich_trivy_with_epss "trivy-fs-results.json"
+    enrich_trivy_with_epss "trivy-image-results.json"
 
     # Each upload_scan call increments UPLOAD_FAILURES on error but does not
     # abort, so all scans are always attempted regardless of individual failures.
