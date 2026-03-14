@@ -11,11 +11,14 @@ Usage: defectdojo-epss-patch.py <defectdojo_url> <api_token> <engagement_id>
 """
 
 import json
+import re
 import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+
+_CVE_RE = re.compile(r"CVE-\d{4}-\d{4,}", re.IGNORECASE)
 
 FIRST_EPSS_ENDPOINT = "https://api.first.org/data/v1/epss"
 USER_AGENT = "defectdojo-upload/1.0"
@@ -67,18 +70,26 @@ def get_all_findings(base_url: str, token: str, engagement_id: str) -> list[dict
 
 
 def extract_cve_id(finding: dict) -> str | None:
-    # Primary: top-level cve field (set by most parsers)
+    # 1. Top-level cve field (Trivy, some other parsers)
     cve = finding.get("cve")
-    if isinstance(cve, str) and cve.startswith("CVE-"):
-        return cve
+    if isinstance(cve, str) and cve.upper().startswith("CVE-"):
+        return cve.upper()
 
-    # Fallback: vulnerability_ids list (DefectDojo 2.x schema)
+    # 2. vulnerability_ids list (DefectDojo 2.x schema)
     for vid_obj in finding.get("vulnerability_ids") or []:
         if not isinstance(vid_obj, dict):
             continue
         vid = vid_obj.get("vulnerability_id", "")
-        if isinstance(vid, str) and vid.startswith("CVE-"):
-            return vid
+        if isinstance(vid, str) and vid.upper().startswith("CVE-"):
+            return vid.upper()
+
+    # 3. Regex scan on title — catches Dependency Check XML findings where the
+    #    parser embeds the CVE in the title (e.g. "CVE-2021-44228 | log4j-core")
+    #    and leaves finding.cve blank.
+    title = finding.get("title") or ""
+    match = _CVE_RE.search(title)
+    if match:
+        return match.group(0).upper()
 
     return None
 
