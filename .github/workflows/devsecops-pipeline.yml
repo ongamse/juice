@@ -238,18 +238,18 @@ jobs:
           DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
           USE_EPSS: "true"
         run: |
+          echo "Waiting for DefectDojo to finish processing reports..."
+          sleep 30
           cd ai/
           pip install -r requirements.txt
           python collector.py
           python feature_engineering.py
         continue-on-error: true
 
-      - name: Upload AI data artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ai-data
-          path: |
-            ai/data/raw_findings.json
-            ai/data/features.csv
-          retention-days: 7
-        continue-on-error: true
+      - name: Commit AI data to repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add ai/data/raw_findings.json ai/data/features.csv
+          git commit -m "chore: update AI training data [skip ci]" || echo "No changes to commit"
+          git push
