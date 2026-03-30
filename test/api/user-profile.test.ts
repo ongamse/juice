@@ -42,11 +42,24 @@ void describe('/profile', () => {
     assert.ok(res.text.includes('id="email" type="email" name="email" value="jim@juice-sh.op"'))
   })
 
+  void it('POST update username is forbidden for unauthenticated user', async () => {
+    const res = await request(app)
+      .post('/profile')
+      .type('form')
+      .send({ username: 'Localhorst' })
+
+    assert.equal(res.status, 500)
+    assert.ok(res.headers['content-type']?.includes('text/html'))
+    assert.ok(res.text.includes(`<h1>${config.get<string>('application.name')} (Express`))
+    assert.ok(res.text.includes('Error: Blocked illegal activity'))
+  })
+
   void it('POST update username of authenticated user', async () => {
     const res = await request(app)
       .post('/profile')
       .set('Cookie', authHeader.Cookie)
-      .field('username', 'Localhorst')
+      .type('form')
+      .send({ username: 'Localhorst' })
       .redirects(0)
 
     assert.equal(res.status, 302)

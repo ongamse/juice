@@ -27,13 +27,14 @@ describe('/#/score-board', () => {
   })
 })
 
-xdescribe('/#/score-board-legacy', () => { // TODO Replace with test based on new Score Board
+describe('/#/score-board repeat notification', () => {
   describe('repeat notification', () => {
     beforeEach(() => {
-      cy.visit('/#/score-board-legacy')
+      cy.visit('/#/score-board')
+      cy.expectChallengeSolved({ challenge: 'Score Board' })
     })
 
-    it('should be possible in both when and when not in CTF mode', () => {
+    it('should be possible on the new score board when flags are enabled in notifications', () => {
       cy.task('GetFromConfig', 'challenges.showSolvedNotifications').as(
         'showSolvedNotifications'
       )
@@ -43,26 +44,24 @@ xdescribe('/#/score-board-legacy', () => { // TODO Replace with test based on ne
 
       cy.get('@showSolvedNotifications').then((showSolvedNotifications) => {
         cy.get('@showFlagsInNotifications').then((showFlagsInNotifications) => {
-          if (showSolvedNotifications && showFlagsInNotifications) {
-            cy.get('.challenge-solved-toast').then((arrayOfSolvedToasts) => {
-              const alertsBefore = Cypress.$(arrayOfSolvedToasts).length
-              cy.get('[id="Score Board.solved"]').click()
+          if (showFlagsInNotifications) {
+            cy.get('body').then(($body) => {
+              const alertsBefore = $body.find('.challenge-solved-toast').length
 
-              cy.get('.challenge-solved-toast').should(
-                'not.have.length',
-                alertsBefore
-              )
+              cy.get('[id="Score Board.repeatNotification"]').click()
+
+              if (showSolvedNotifications) {
+                cy.get('.challenge-solved-toast').should(($toasts) => {
+                  expect($toasts.length).to.be.greaterThan(alertsBefore)
+                })
+              } else {
+                cy.get('body').should(($updatedBody) => {
+                  expect($updatedBody.find('.challenge-solved-toast').length).to.equal(alertsBefore)
+                })
+              }
             })
           } else {
-            cy.get('.challenge-solved-toast').then((arrayOfSolvedToasts) => {
-              const alertsBefore = Cypress.$(arrayOfSolvedToasts).length
-              cy.get('[id="Score Board.solved"]').click()
-
-              cy.get('.challenge-solved-toast').should(
-                'have.length',
-                alertsBefore
-              )
-            })
+            cy.get('[id="Score Board.repeatNotification"]').should('not.exist')
           }
         })
       })

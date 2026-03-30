@@ -56,7 +56,7 @@
     }
     <!-- ctf mode flag repeat-->
     @if (challenge.solved && applicationConfiguration.ctf.showFlagsInNotifications) {
-    <button class="badge" [ngClass]="{ 'completed': challenge.solved }"
+    <button class="badge" [id]="challenge.name + '.repeatNotification'" [ngClass]="{ 'completed': challenge.solved }"
       (click)="repeatChallengeNotification(challenge.key)"
       [matTooltip]="'NOTIFICATION_RESEND_INSTRUCTIONS' | translate">
       <mat-icon>flag_outline</mat-icon>

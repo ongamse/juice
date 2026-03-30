@@ -24,61 +24,43 @@ import onFinished from 'on-finished'
 
 const register = Prometheus.register
 
-const fileUploadsCountMetric = new Prometheus.Counter({
-  name: 'file_uploads_count',
-  help: 'Total number of successful file uploads grouped by file type.',
-  labelNames: ['file_type']
-})
+let metricsInitialized = false
+let defaultMetricsInitialized = false
+let fileUploadsCountMetric: any
+let fileUploadErrorsMetric: any
+let httpRequestsMetric: any
+let updateMetricsNow: () => Promise<void> = async () => {}
 
-const fileUploadErrorsMetric = new Prometheus.Counter({
-  name: 'file_upload_errors',
-  help: 'Total number of failed file uploads grouped by file type.',
-  labelNames: ['file_type']
-})
-
-const httpRequestsMetric = new Prometheus.Counter({
-  name: 'http_requests_count',
-  help: 'Total HTTP request count grouped by status code.',
-  labelNames: ['status_code']
-})
-
-export function observeRequestMetricsMiddleware () {
-  return (req: Request, res: Response, next: NextFunction) => {
-    onFinished(res, () => {
-      const statusCode = `${Math.floor(res.statusCode / 100)}XX`
-      httpRequestsMetric.labels(statusCode).inc()
-    })
-    next()
+function initializeMetrics () {
+  if (metricsInitialized) {
+    return
   }
-}
 
-export function observeFileUploadMetricsMiddleware () {
-  return ({ file }: Request, res: Response, next: NextFunction) => {
-    onFinished(res, () => {
-      if (file != null) {
-        res.statusCode < 400 ? fileUploadsCountMetric.labels(file.mimetype).inc() : fileUploadErrorsMetric.labels(file.mimetype).inc()
-      }
-    })
-    next()
+  if (!defaultMetricsInitialized) {
+    Prometheus.collectDefaultMetrics({})
+    defaultMetricsInitialized = true
   }
-}
 
-export function serveMetrics () {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    challengeUtils.solveIf(challenges.exposedMetricsChallenge, () => {
-      const userAgent = req.headers['user-agent'] ?? ''
-      const ignoredUserAgents = config.get<string[]>('challenges.metricsIgnoredUserAgents')
-      return !ignoredUserAgents.some((ignoredUserAgent) => userAgent.includes(ignoredUserAgent))
-    })
-    res.set('Content-Type', register.contentType)
-    res.end(await register.metrics())
-  }
-}
-
-export function observeMetrics () {
   const app = config.get<string>('application.customMetricsPrefix')
-  Prometheus.collectDefaultMetrics({})
   register.setDefaultLabels({ app })
+
+  fileUploadsCountMetric = new Prometheus.Counter({
+    name: 'file_uploads_count',
+    help: 'Total number of successful file uploads grouped by file type.',
+    labelNames: ['file_type']
+  })
+
+  fileUploadErrorsMetric = new Prometheus.Counter({
+    name: 'file_upload_errors',
+    help: 'Total number of failed file uploads grouped by file type.',
+    labelNames: ['file_type']
+  })
+
+  httpRequestsMetric = new Prometheus.Counter({
+    name: 'http_requests_count',
+    help: 'Total HTTP request count grouped by status code.',
+    labelNames: ['status_code']
+  })
 
   const versionMetrics = new Prometheus.Gauge({
     name: `${app}_version_info`,
@@ -142,66 +124,118 @@ export function observeMetrics () {
     labelNames: ['type']
   })
 
-  const updateLoop = () => setInterval(() => {
-    void (async () => {
-      try {
-        const version = utils.version()
-        const { major, minor, patch } = version.match(/(?<major>\d+).(?<minor>\d+).(?<patch>\d+)/).groups
-        versionMetrics.set({ version, major, minor, patch }, 1)
+  updateMetricsNow = async () => {
+    try {
+      const version = utils.version()
+      const { major, minor, patch } = version.match(/(?<major>\d+).(?<minor>\d+).(?<patch>\d+)/).groups
+      versionMetrics.set({ version, major, minor, patch }, 1)
 
-        const challengeStatuses = new Map()
-        const challengeCount = new Map()
+      const challengeStatuses = new Map()
+      const challengeCount = new Map()
 
-        for (const { difficulty, category, solved } of Object.values<ChallengeModel>(challenges)) {
-          const key = `${difficulty}:${category}`
+      for (const { difficulty, category, solved } of Object.values<ChallengeModel>(challenges)) {
+        const key = `${difficulty}:${category}`
 
-          // Increment by one if solved, when not solved increment by 0. This ensures that even unsolved challenges are set to , instead of not being set at all
-          challengeStatuses.set(key, (challengeStatuses.get(key) || 0) + (solved ? 1 : 0))
-          challengeCount.set(key, (challengeCount.get(key) || 0) + 1)
-        }
-
-        for (const key of challengeStatuses.keys()) {
-          const [difficulty, category] = key.split(':', 2)
-
-          challengeSolvedMetrics.set({ difficulty, category }, challengeStatuses.get(key))
-          challengeTotalMetrics.set({ difficulty, category }, challengeCount.get(key))
-        }
-
-        const [codingChallenges, findItCount, fixItCount, solvedCount, orderCount, reviewCount, customerCount, deluxeCount, totalUserCount, totalBalance, feedbackCount, complaintCount] = await Promise.all([
-          retrieveChallengesWithCodeSnippet(),
-          ChallengeModel.count({ where: { codingChallengeStatus: { [Op.eq]: 1 } } }),
-          ChallengeModel.count({ where: { codingChallengeStatus: { [Op.eq]: 2 } } }),
-          ChallengeModel.count({ where: { codingChallengeStatus: { [Op.ne]: 0 } } }),
-          ordersCollection.count({}),
-          reviewsCollection.count({}),
-          UserModel.count({ where: { role: { [Op.eq]: 'customer' } } }),
-          UserModel.count({ where: { role: { [Op.eq]: 'deluxe' } } }),
-          UserModel.count(),
-          WalletModel.sum('balance'),
-          FeedbackModel.count(),
-          ComplaintModel.count()
-        ])
-
-        codingChallengesProgressMetrics.set({ phase: 'find it' }, findItCount)
-        codingChallengesProgressMetrics.set({ phase: 'fix it' }, fixItCount)
-        codingChallengesProgressMetrics.set({ phase: 'unsolved' }, codingChallenges.length - solvedCount)
-
-        cheatScoreMetrics.set(totalCheatScore())
-        accuracyMetrics.set({ phase: 'find it' }, accuracy.totalFindItAccuracy())
-        accuracyMetrics.set({ phase: 'fix it' }, accuracy.totalFixItAccuracy())
-
-        if (orderCount) orderMetrics.set(orderCount)
-        if (reviewCount) interactionsMetrics.set({ type: 'review' }, reviewCount)
-        if (customerCount) userMetrics.set({ type: 'standard' }, customerCount)
-        if (deluxeCount) userMetrics.set({ type: 'deluxe' }, deluxeCount)
-        if (totalUserCount) userTotalMetrics.set(totalUserCount)
-        if (totalBalance) walletMetrics.set(totalBalance)
-        if (feedbackCount) interactionsMetrics.set({ type: 'feedback' }, feedbackCount)
-        if (complaintCount) interactionsMetrics.set({ type: 'complaint' }, complaintCount)
-      } catch (e: unknown) {
-        logger.warn('Error during metrics update loop: + ' + utils.getErrorMessage(e))
+        challengeStatuses.set(key, (challengeStatuses.get(key) || 0) + (solved ? 1 : 0))
+        challengeCount.set(key, (challengeCount.get(key) || 0) + 1)
       }
-    })()
+
+      for (const key of challengeStatuses.keys()) {
+        const [difficulty, category] = key.split(':', 2)
+
+        challengeSolvedMetrics.set({ difficulty, category }, challengeStatuses.get(key))
+        challengeTotalMetrics.set({ difficulty, category }, challengeCount.get(key))
+      }
+
+      const [codingChallenges, findItCount, fixItCount, solvedCount, orderCount, reviewCount, customerCount, deluxeCount, totalUserCount, totalBalance, feedbackCount, complaintCount] = await Promise.all([
+        retrieveChallengesWithCodeSnippet(),
+        ChallengeModel.count({ where: { codingChallengeStatus: { [Op.eq]: 1 } } }),
+        ChallengeModel.count({ where: { codingChallengeStatus: { [Op.eq]: 2 } } }),
+        ChallengeModel.count({ where: { codingChallengeStatus: { [Op.ne]: 0 } } }),
+        ordersCollection.count({}),
+        reviewsCollection.count({}),
+        UserModel.count({ where: { role: { [Op.eq]: 'customer' } } }),
+        UserModel.count({ where: { role: { [Op.eq]: 'deluxe' } } }),
+        UserModel.count(),
+        WalletModel.sum('balance'),
+        FeedbackModel.count(),
+        ComplaintModel.count()
+      ])
+
+      codingChallengesProgressMetrics.set({ phase: 'find it' }, findItCount)
+      codingChallengesProgressMetrics.set({ phase: 'fix it' }, fixItCount)
+      codingChallengesProgressMetrics.set({ phase: 'unsolved' }, codingChallenges.length - solvedCount)
+
+      cheatScoreMetrics.set(totalCheatScore())
+      accuracyMetrics.set({ phase: 'find it' }, accuracy.totalFindItAccuracy())
+      accuracyMetrics.set({ phase: 'fix it' }, accuracy.totalFixItAccuracy())
+
+      if (orderCount) orderMetrics.set(orderCount)
+      if (reviewCount) interactionsMetrics.set({ type: 'review' }, reviewCount)
+      if (customerCount) userMetrics.set({ type: 'standard' }, customerCount)
+      if (deluxeCount) userMetrics.set({ type: 'deluxe' }, deluxeCount)
+      if (totalUserCount) userTotalMetrics.set(totalUserCount)
+      if (totalBalance) walletMetrics.set(totalBalance)
+      if (feedbackCount) interactionsMetrics.set({ type: 'feedback' }, feedbackCount)
+      if (complaintCount) interactionsMetrics.set({ type: 'complaint' }, complaintCount)
+    } catch (e: unknown) {
+      logger.warn('Error during metrics update loop: + ' + utils.getErrorMessage(e))
+    }
+  }
+
+  metricsInitialized = true
+}
+
+export function resetMetrics () {
+  metricsInitialized = false
+  fileUploadsCountMetric = undefined
+  fileUploadErrorsMetric = undefined
+  httpRequestsMetric = undefined
+  updateMetricsNow = async () => {}
+}
+
+export function observeRequestMetricsMiddleware () {
+  initializeMetrics()
+  return (req: Request, res: Response, next: NextFunction) => {
+    onFinished(res, () => {
+      const statusCode = `${Math.floor(res.statusCode / 100)}XX`
+      httpRequestsMetric.labels(statusCode).inc()
+    })
+    next()
+  }
+}
+
+export function observeFileUploadMetricsMiddleware () {
+  initializeMetrics()
+  return ({ file }: Request, res: Response, next: NextFunction) => {
+    onFinished(res, () => {
+      if (file != null) {
+        res.statusCode < 400 ? fileUploadsCountMetric.labels(file.mimetype).inc() : fileUploadErrorsMetric.labels(file.mimetype).inc()
+      }
+    })
+    next()
+  }
+}
+
+export function serveMetrics () {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    initializeMetrics()
+    challengeUtils.solveIf(challenges.exposedMetricsChallenge, () => {
+      const userAgent = req.headers['user-agent'] ?? ''
+      const ignoredUserAgents = config.get<string[]>('challenges.metricsIgnoredUserAgents')
+      return !ignoredUserAgents.some((ignoredUserAgent) => userAgent.includes(ignoredUserAgent))
+    })
+    await updateMetricsNow()
+    res.set('Content-Type', register.contentType)
+    res.end(await register.metrics())
+  }
+}
+
+export function observeMetrics () {
+  initializeMetrics()
+
+  const updateLoop = () => setInterval(() => {
+    void updateMetricsNow()
   }, 5000)
 
   return {

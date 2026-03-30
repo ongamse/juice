@@ -770,6 +770,7 @@ export async function createApp (options?: { inMemoryDb?: boolean }) {
     setSequelize(seq)
   }
   Prometheus.register.clear()
+  metrics.resetMetrics()
   const testApp = express()
   testApp.set('view engine', 'hbs')
   configureApp(testApp, seq)
