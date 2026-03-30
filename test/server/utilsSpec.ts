@@ -16,8 +16,12 @@ describe('utils', () => {
       expect(utils.toSimpleIpAddress('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).to.equal('2001:0db8:85a3:0000:0000:8a2e:0370:7334')
     })
 
-    it('returns ipv4 address fully specified as ipv6 unchanged', () => {
-      expect(utils.toSimpleIpAddress('0:0:0:0:0:ffff:7f00:1')).to.equal('0:0:0:0:0:ffff:7f00:1')
+    it('returns fully specified ipv4-mapped ipv6 loopback address as ipv4 address', () => {
+      expect(utils.toSimpleIpAddress('0:0:0:0:0:ffff:7f00:1')).to.equal('127.0.0.1')
+    })
+
+    it('returns fully specified ipv4-mapped ipv6 address as ipv4 address', () => {
+      expect(utils.toSimpleIpAddress('0000:0000:0000:0000:0000:ffff:c000:0280')).to.equal('192.0.2.128')
     })
 
     it('returns ipv6 loopback address as ipv4 address', () => {

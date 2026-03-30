@@ -213,6 +213,19 @@ export const toSimpleIpAddress = (ipv6: string) => {
     return ipv6.substr(7)
   } else if (ipv6 === '::1') {
     return '127.0.0.1'
+  } else if (/^(?:0{1,4}:){5}ffff:[0-9a-f]{1,4}:[0-9a-f]{1,4}$/i.test(ipv6)) {
+    const [, upperBytes, lowerBytes] = ipv6.match(/ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i) ?? []
+    if (upperBytes !== undefined && lowerBytes !== undefined) {
+      const upper = Number.parseInt(upperBytes, 16)
+      const lower = Number.parseInt(lowerBytes, 16)
+      return [
+        (upper >> 8) & 255,
+        upper & 255,
+        (lower >> 8) & 255,
+        lower & 255
+      ].join('.')
+    }
+    return ipv6
   } else {
     return ipv6
   }
