@@ -100,10 +100,11 @@ void describe('/profile/image/url', () => {
     assert.equal(res.status, 302)
   })
 
-  void it('POST profile image URL forbidden for anonymous user', { skip: 'FIXME runs into "socket hang up"' }, async () => {
+  void it('POST profile image URL forbidden for anonymous user', async () => {
     const res = await request(app)
       .post('/profile/image/url')
-      .field('imageUrl', 'cataas.com/cat')
+      .type('form')
+      .send({ imageUrl: 'cataas.com/cat' })
 
     assert.equal(res.status, 500)
     assert.ok(res.headers['content-type']?.includes('text/html'))
