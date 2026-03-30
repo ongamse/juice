@@ -152,6 +152,9 @@ ctf:
     resetPasswordBjoernChallenge:
       name: Georgia
       code: GE
+    resetPasswordAdminChallenge:
+      name: Romania
+      code: RO
     noSqlCommandChallenge:
       name: Trinidad and Tobago
       code: TT

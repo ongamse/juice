@@ -20,6 +20,7 @@ import { PrivacyRequestModelInit } from './privacyRequests'
 import { ProductModelInit } from './product'
 import { QuantityModelInit } from './quantity'
 import { RecycleModelInit } from './recycle'
+import { ResetPasswordTokenModelInit } from './resetPasswordToken'
 import { relationsInit } from './relations'
 import { SecurityAnswerModelInit } from './securityAnswer'
 import { SecurityQuestionModelInit } from './securityQuestion'
@@ -72,6 +73,7 @@ function initModels (seq: Sequelize) {
   ProductModelInit(seq)
   QuantityModelInit(seq)
   RecycleModelInit(seq)
+  ResetPasswordTokenModelInit(seq)
   SecurityAnswerModelInit(seq)
   SecurityQuestionModelInit(seq)
   UserModelInit(seq)

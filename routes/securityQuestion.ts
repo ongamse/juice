@@ -7,11 +7,16 @@ import { type Request, type Response, type NextFunction } from 'express'
 import { SecurityAnswerModel } from '../models/securityAnswer'
 import { UserModel } from '../models/user'
 import { SecurityQuestionModel } from '../models/securityQuestion'
+import { users } from '../data/datacache'
 
 export function securityQuestion () {
   return async ({ query }: Request, res: Response, next: NextFunction) => {
     const email = query.email
     try {
+      if (email?.toString() === users.admin.email) {
+        res.json({ mode: 'token' })
+        return
+      }
       const answer = await SecurityAnswerModel.findOne({
         include: [{
           model: UserModel,
@@ -20,7 +25,7 @@ export function securityQuestion () {
       })
       if (answer != null) {
         const question = await SecurityQuestionModel.findByPk(answer.SecurityQuestionId)
-        res.json({ question })
+        res.json({ question, mode: 'question' })
       } else {
         res.json({})
       }

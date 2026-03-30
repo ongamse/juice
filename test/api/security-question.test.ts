@@ -76,7 +76,16 @@ void describe('/rest/user/security-question', () => {
       .get(`/rest/user/security-question?email=jim@${config.get<string>('application.domain')}`)
 
     assert.equal(res.status, 200)
+    assert.equal(res.body.mode, 'question')
     assert.equal(res.body.question.question, 'Your eldest siblings middle name?')
+  })
+
+  void it('GET admin reset flow switches to token mode', async () => {
+    const res = await request(app)
+      .get(`/rest/user/security-question?email=admin@${config.get<string>('application.domain')}`)
+
+    assert.equal(res.status, 200)
+    assert.equal(res.body.mode, 'token')
   })
 
   void it('GET security question returns nothing for an unknown email address', async () => {

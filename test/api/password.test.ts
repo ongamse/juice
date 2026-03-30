@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import request from 'supertest'
 import type { Express } from 'express'
 import config from 'config'
+import { createResetPasswordToken } from '../../lib/resetPasswordTokenUtils'
 import { createTestApp } from './helpers/setup'
 import { login } from './helpers/auth'
 
@@ -172,6 +173,44 @@ void describe('/rest/user/reset-password', () => {
       })
 
     assert.equal(res.status, 200)
+  })
+
+  void it('POST password reset for Admin with the predictable reset token', async () => {
+    const appDomain = config.get<string>('application.domain')
+    const adminEmail = `admin@${appDomain}`
+    const newAdminPassword = 'Adm1nRes3t!'
+    const originalAdminPassword = 'admin123'
+    const adminToken = createResetPasswordToken(adminEmail)
+
+    await request(app)
+      .get(`/rest/user/security-question?email=${adminEmail}`)
+      .expect(200)
+
+    await request(app)
+      .post('/rest/user/reset-password')
+      .set({ 'content-type': 'application/json' })
+      .send({
+        email: adminEmail,
+        token: adminToken,
+        new: newAdminPassword,
+        repeat: newAdminPassword
+      })
+      .expect(200)
+
+    await login(app, { email: adminEmail, password: newAdminPassword })
+
+    await request(app)
+      .post('/rest/user/reset-password')
+      .set({ 'content-type': 'application/json' })
+      .send({
+        email: adminEmail,
+        token: adminToken,
+        new: originalAdminPassword,
+        repeat: originalAdminPassword
+      })
+      .expect(200)
+
+    await login(app, { email: adminEmail, password: originalAdminPassword })
   })
 
   void it('POST password reset with wrong answer to security question', async () => {
