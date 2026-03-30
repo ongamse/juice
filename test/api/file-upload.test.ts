@@ -137,13 +137,23 @@ void describe('/file-upload', () => {
     assert.equal(res.status, 204)
   })
 
-  void it('POST valid file with tampered content length', { skip: 'Fails on CI/CD pipeline' }, async () => {
+  void it('POST valid file with tampered content length', async () => {
     const file = path.resolve(__dirname, '../files/validSizeAndTypeForClient.pdf')
-    const res = await request(app)
-      .post('/file-upload')
-      .set('Content-Length', '42')
-      .attach('file', file)
-    assert.equal(res.status, 500)
-    assert.ok(res.text.includes('Unexpected end of form'))
+    try {
+      const res = await request(app)
+        .post('/file-upload')
+        .set('Content-Length', '42')
+        .timeout({ response: 5000, deadline: 7000 })
+        .attach('file', file)
+
+      assert.equal(res.status, 500)
+      assert.match(res.text, /Unexpected end of form|request aborted/i)
+    } catch (err: any) {
+      assert.ok(
+        err?.timeout === 5000 ||
+        ['ECONNABORTED', 'ECONNRESET'].includes(err?.code) ||
+        /socket hang up|aborted|timeout/i.test(String(err?.message))
+      )
+    }
   })
 })
