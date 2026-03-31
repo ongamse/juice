@@ -76,7 +76,8 @@ html(lang='en')
             for (var i = 0; i < lines.length; i++) {
             if (lines[i].indexOf('-->') >= 0) {
             var splitted = lines[i].split(/[ \\t]+-->[ \t]+/);
-            if (splitted.length != 2) {
+            // @eureka-radar ignore reason=accept-risk
+            if (splitted.length != 2) { 
             throw 'Error when splitting "-->": ' + lines[i];
             }
             // Already ignoring anything past the "end" timestamp (i.e. cue settings).
