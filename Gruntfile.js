@@ -74,12 +74,12 @@ module.exports = function (grunt) {
     const crypto = require('node:crypto')
     fs.readdirSync('dist/').forEach(file => {
       const buffer = fs.readFileSync('dist/' + file)
-      const md5 = crypto.createHash('md5')
+      const sha3 = crypto.createHash('sha-3')
       md5.update(buffer)
-      const md5Hash = md5.digest('hex')
-      const md5FileName = 'dist/' + file + '.md5'
-      grunt.file.write(md5FileName, md5Hash)
-      grunt.log.write(`Checksum ${md5Hash} written to file ${md5FileName}.`).verbose.write('...').ok()
+      const sha3Hash = sha3.digest('hex')
+      const sha3FileName = 'dist/' + file + '.sha3'
+      grunt.file.write(sha3FileName, sha3Hash)
+      grunt.log.write(`Checksum ${sha3Hash} written to file ${sha3FileName}.`).verbose.write('...').ok()
       grunt.log.writeln()
     })
   })
