@@ -758,11 +758,3 @@ export function close (exitCode: number | undefined) {
 // stop server on sigint or sigterm signals
 process.on('SIGINT', () => { close(0) })
 process.on('SIGTERM', () => { close(0) })
-// --- SMOKE TEST: intentionally insecure code (will be reverted) ---
-const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";
-const AWS_SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
-function unsafeQuery(userInput: string) {
-  const query = "SELECT * FROM users WHERE name = '" + userInput + "'";
-  return query;
-}
-// --- END SMOKE TEST ---
