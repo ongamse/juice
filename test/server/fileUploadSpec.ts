@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -6,7 +6,7 @@
 import chai from 'chai'
 import { challenges } from '../../data/datacache'
 import { type Challenge } from 'data/types'
-import { checkUploadSize, checkFileType } from '../../routes/fileUpload'
+import { checkUploadSize, checkFileType } from '../../routes/file-management/fileUpload'
 
 const expect = chai.expect
 
@@ -64,3 +64,4 @@ describe('fileUpload', () => {
     expect(challenges.uploadTypeChallenge.solved).to.equal(false)
   })
 })
+

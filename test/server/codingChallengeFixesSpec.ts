@@ -1,10 +1,10 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
-import { retrieveChallengesWithCodeSnippet } from '../../routes/vulnCodeSnippet'
-import { readFixes } from '../../routes/vulnCodeFixes'
+import { retrieveChallengesWithCodeSnippet } from '../../routes/challenge-system/vulnCodeSnippet'
+import { readFixes } from '../../routes/challenge-system/vulnCodeFixes'
 import chai from 'chai'
 import fs from 'graceful-fs'
 import sinonChai from 'sinon-chai'
@@ -37,3 +37,4 @@ describe('codingChallengeFixes', () => {
     }
   })
 })
+

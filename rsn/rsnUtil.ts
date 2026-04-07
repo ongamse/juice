@@ -1,8 +1,8 @@
-import fs from 'node:fs'
+﻿import fs from 'node:fs'
 import colors from 'colors/safe'
 import { diffLines, structuredPatch } from 'diff'
 
-import { retrieveCodeSnippet } from '../routes/vulnCodeSnippet'
+import { retrieveCodeSnippet } from '../routes/challenge-system/vulnCodeSnippet'
 
 const fixesPath = 'data/static/codefixes'
 const cacheFile = 'rsn/cache.json'
@@ -155,3 +155,4 @@ export {
   seePatch,
   checkData
 }
+

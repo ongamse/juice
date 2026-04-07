@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -6,7 +6,7 @@
 import * as frisby from 'frisby'
 import { expect } from '@jest/globals'
 import config from 'config'
-import { initializeChatbot, bot } from '../../routes/chatbot'
+import { initializeChatbot, bot } from '../../routes/communication/chatbot'
 import fs from 'node:fs/promises'
 import * as utils from '../../lib/utils'
 
@@ -53,7 +53,7 @@ describe('/chatbot', () => {
     it('GET bot state for authenticated users contains request for username', async () => {
       const { token } = await login({
         email: `J12934@${config.get<string>('application.domain')}`,
-        password: '0Y8rMnww$*9VFYE§59-!Fg1L6t&6lB'
+        password: '0Y8rMnww$*9VFYEÂ§59-!Fg1L6t&6lB'
       })
 
       await frisby.setup({
@@ -74,7 +74,7 @@ describe('/chatbot', () => {
     it('Asks for username if not defined', async () => {
       const { token } = await login({
         email: `J12934@${config.get<string>('application.domain')}`,
-        password: '0Y8rMnww$*9VFYE§59-!Fg1L6t&6lB'
+        password: '0Y8rMnww$*9VFYEÂ§59-!Fg1L6t&6lB'
       })
 
       const testCommand = trainingData.data[0].utterances[0]
@@ -195,7 +195,7 @@ describe('/chatbot', () => {
         .expect('json', 'action', 'response')
         .promise()
         .then(({ body = json.body }) => {
-          expect(body).toContain(`${json.data.name} costs ${json.data.price}¤`)
+          expect(body).toContain(`${json.data.name} costs ${json.data.price}Â¤`)
         })
     })
 
@@ -313,3 +313,4 @@ describe('/chatbot', () => {
     })
   })
 })
+

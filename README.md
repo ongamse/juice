@@ -61,14 +61,9 @@ For a detailed introduction, full list of features and architecture overview ple
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/juice-shop/juice-shop.svg)
 
-1. Install [node.js](#nodejs-version-compatibility)
-2. Run `git clone https://github.com/juice-shop/juice-shop.git --depth 1` (or
-   clone [your own fork](https://github.com/juice-shop/juice-shop/fork)
-   of the repository)
-3. Go into the cloned folder with `cd juice-shop`
-4. Run `npm install` (only has to be done before first start or when you change the source code)
-5. Run `npm start`
-6. Browse to <http://localhost:3000>
+1. Install [Docker](https://www.docker.com)
+2. Run `docker run --rm -p 127.0.0.1:3000:3000 bkimminich/juice-shop`
+3. Browse to <http://localhost:3000>
 
 ### Packaged Distributions
 
@@ -76,17 +71,12 @@ For a detailed introduction, full list of features and architecture overview ple
 [![SourceForge](https://img.shields.io/sourceforge/dm/juice-shop?label=sourceforge%20downloads)](https://sourceforge.net/projects/juice-shop/)
 [![SourceForge](https://img.shields.io/sourceforge/dt/juice-shop?label=sourceforge%20downloads)](https://sourceforge.net/projects/juice-shop/)
 
-1. Install a 64bit [node.js](#nodejs-version-compatibility) on your Windows, MacOS or Linux machine
-2. Download `juice-shop-<version>_<node-version>_<os>_x64.zip` (or
-   `.tgz`) attached to
-   [latest release](https://github.com/juice-shop/juice-shop/releases/latest)
-3. Unpack and `cd` into the unpacked folder
-4. Run `npm start`
-5. Browse to <http://localhost:3000>
+1. Install [Docker](https://www.docker.com)
+2. Run `docker pull bkimminich/juice-shop`
+3. Run `docker run --rm -p 127.0.0.1:3000:3000 bkimminich/juice-shop`
+4. Browse to <http://localhost:3000>
 
-> Each packaged distribution includes some binaries for `sqlite3` and
-> `libxmljs2` bound to the OS and node.js version which `npm install` was
-> executed on.
+> The Docker image includes the compiled frontend and server runtime needed to start the app without installing Node.js locally.
 
 ### Docker Container
 

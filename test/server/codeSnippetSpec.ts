@@ -1,6 +1,6 @@
-import chai from 'chai'
+﻿import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import { getVerdict } from '../../routes/vulnCodeSnippet'
+import { getVerdict } from '../../routes/challenge-system/vulnCodeSnippet'
 const expect = chai.expect
 chai.use(sinonChai)
 
@@ -42,3 +42,4 @@ describe('vulnCodeSnippet', () => {
     expect(getVerdict([], [], [])).to.equal(true)
   })
 })
+

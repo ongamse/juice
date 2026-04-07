@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -58,7 +58,7 @@ module.exports = function (grunt) {
               'lib/**',
               'models/*.ts',
               'node_modules/**',
-              'routes/*.ts',
+              'routes/**/*.ts',
               'uploads/complaints/.gitkeep',
               'views/**'
             ],
@@ -88,3 +88,4 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-compress')
   grunt.registerTask('package', ['replace_json:manifest', 'compress:pckg', 'checksum'])
 }
+

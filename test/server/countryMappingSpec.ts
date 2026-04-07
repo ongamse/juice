@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -7,7 +7,7 @@ import sinon from 'sinon'
 import config, { type IConfig } from 'config'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import { countryMapping } from '../../routes/countryMapping'
+import { countryMapping } from '../../routes/product-catalog/countryMapping'
 const expect = chai.expect
 chai.use(sinonChai)
 
@@ -42,3 +42,4 @@ describe('countryMapping', () => {
     }
   })
 })
+

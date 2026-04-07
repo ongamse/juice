@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -13,7 +13,7 @@ import type { Product as ProductConfig } from '../../lib/config.types'
 import * as security from '../../lib/insecurity'
 import { type UserModel } from 'models/user'
 import * as utils from '../../lib/utils'
-import * as verify from '../../routes/verify'
+import * as verify from '../../routes/challenge-system/verify'
 const expect = chai.expect
 
 chai.use(sinonChai)
@@ -324,3 +324,4 @@ describe('verify', () => {
     }
   })
 })
+

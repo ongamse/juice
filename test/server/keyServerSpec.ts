@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -6,7 +6,7 @@
 import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import { serveKeyFiles } from '../../routes/keyServer'
+import { serveKeyFiles } from '../../routes/file-management/keyServer'
 const expect = chai.expect
 chai.use(sinonChai)
 
@@ -38,3 +38,4 @@ describe('keyServer', () => {
     expect(next).to.have.been.calledWith(sinon.match.instanceOf(Error))
   })
 })
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -8,7 +8,7 @@ import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import { challenges } from '../../data/datacache'
 import { type Challenge } from 'data/types'
-import { serveEasterEgg } from '../../routes/easterEgg'
+import { serveEasterEgg } from '../../routes/challenge-system/easterEgg'
 const expect = chai.expect
 chai.use(sinonChai)
 
@@ -39,3 +39,4 @@ describe('easterEgg', () => {
     expect(challenges.easterEggLevelTwoChallenge.solved).to.equal(true)
   })
 })
+

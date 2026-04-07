@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "juice-shop",
   "version": "19.1.1",
   "private": true,
@@ -28,9 +28,9 @@
     "url": "https://github.com/juice-shop/juice-shop.git"
   },
   "license": "MIT",
-  "author": "Björn Kimminich <bjoern.kimminich@owasp.org> (https://kimminich.de)",
+  "author": "BjÃ¶rn Kimminich <bjoern.kimminich@owasp.org> (https://kimminich.de)",
   "contributors": [
-    "Björn Kimminich",
+    "BjÃ¶rn Kimminich",
     "Jannik Hollenbach",
     "Aashish683",
     "greenkeeper[bot]",
@@ -54,9 +54,9 @@
     "cypress:run": "cypress run",
     "frisby": "nyc --report-dir=./build/reports/coverage/api-tests jest --silent --runInBand --forceExit",
     "postinstall": "cd frontend && npm install && cd .. && npm run build:frontend && (npm run --silent build:server || cd .)",
-    "lint": "eslint *.ts data lib models routes test/**/*.ts views && cd frontend && npm run lint && npm run lint:scss && cd ..",
+    "lint": "eslint *.ts data lib models routes/**/*.ts test/**/*.ts views && cd frontend && npm run lint && npm run lint:scss && cd ..",
     "lint:config": "schema validate -s config.schema.yml",
-    "lint:fix": "eslint *.ts data lib models routes test/**/*.ts views rsn --fix && cd frontend && npm run lint:fix && cd ..",
+    "lint:fix": "eslint *.ts data lib models routes/**/*.ts test/**/*.ts views rsn --fix && cd frontend && npm run lint:fix && cd ..",
     "package": "grunt package",
     "package:ci": "npm prune --production && npm dedupe && cd frontend && npm prune --production && cd .. && npm run --silent sbom && grunt package",
     "serve": "concurrently --kill-others \"ts-node app.ts\" \"cd frontend && npm run start\"",
@@ -109,7 +109,7 @@
     "include": [
       "lib/*.ts",
       "models/*.ts",
-      "routes/*.ts",
+      "routes/**/*.ts",
       "server.ts"
     ],
     "reporter": [
@@ -294,3 +294,4 @@
     ]
   }
 }
+

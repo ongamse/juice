@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -8,7 +8,7 @@ import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import { type Challenge } from 'data/types'
 import { challenges } from '../../data/datacache'
-import { servePremiumContent } from '../../routes/premiumReward'
+import { servePremiumContent } from '../../routes/challenge-system/premiumReward'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -40,3 +40,4 @@ describe('premiumReward', () => {
     expect(challenges.premiumPaywallChallenge.solved).to.equal(true)
   })
 })
+

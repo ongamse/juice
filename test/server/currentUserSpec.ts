@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -6,7 +6,7 @@
 import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import { retrieveLoggedInUser } from '../../routes/currentUser'
+import { retrieveLoggedInUser } from '../../routes/user-management/currentUser'
 import { authenticatedUsers } from '../../lib/insecurity'
 import type { UserModel } from 'models/user'
 const expect = chai.expect
@@ -41,3 +41,4 @@ describe('currentUser', () => {
     expect(res.json).to.have.been.calledWith({ user: { id: 1, email: 'admin@juice-sh.op', lastLoginIp: '0.0.0.0', profileImage: '/assets/public/images/uploads/default.svg' } })
   })
 })
+

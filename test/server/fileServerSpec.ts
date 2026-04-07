@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -7,7 +7,7 @@ import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import { challenges } from '../../data/datacache'
-import { servePublicFiles } from '../../routes/fileServer'
+import { servePublicFiles } from '../../routes/file-management/fileServer'
 import { type Challenge } from 'data/types'
 const expect = chai.expect
 chai.use(sinonChai)
@@ -119,3 +119,4 @@ describe('fileServer', () => {
     expect(challenges.misplacedSignatureFileChallenge.solved).to.equal(true)
   })
 })
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -9,7 +9,7 @@ import chai from 'chai'
 import sinonChai from 'sinon-chai'
 
 import { version } from '../../package.json'
-import { retrieveAppVersion } from '../../routes/appVersion'
+import { retrieveAppVersion } from '../../routes/admin-b2b/appVersion'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -26,3 +26,4 @@ describe('appVersion', () => {
     expect(res.json).to.have.been.calledWith({ version: config.get<boolean>('application.showVersionNumber') ? version : '' })
   })
 })
+

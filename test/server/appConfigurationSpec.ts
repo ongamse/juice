@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -7,7 +7,7 @@ import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import config from 'config'
-import { retrieveAppConfiguration } from '../../routes/appConfiguration'
+import { retrieveAppConfiguration } from '../../routes/admin-b2b/appConfiguration'
 const expect = chai.expect
 chai.use(sinonChai)
 
@@ -23,3 +23,4 @@ describe('appConfiguration', () => {
     expect(res.json).to.have.been.calledWith({ config })
   })
 })
+

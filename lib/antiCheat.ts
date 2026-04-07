@@ -1,12 +1,12 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
 import config from 'config'
 import colors from 'colors/safe'
-import { retrieveCodeSnippet } from '../routes/vulnCodeSnippet'
-import { readFixes } from '../routes/vulnCodeFixes'
+import { retrieveCodeSnippet } from '../routes/challenge-system/vulnCodeSnippet'
+import { readFixes } from '../routes/challenge-system/vulnCodeFixes'
 import { type Challenge } from '../data/types'
 import { getCodeChallenges } from './codingChallenges'
 import logger from './logger'
@@ -164,3 +164,4 @@ const checkForIdenticalSolvedChallenge = async (challenge: Challenge): Promise<b
   }
   return false
 }
+

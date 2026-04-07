@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -6,7 +6,7 @@
 import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import { serveAngularClient } from '../../routes/angular'
+import { serveAngularClient } from '../../routes/content-mgmt/angular'
 const expect = chai.expect
 chai.use(sinonChai)
 
@@ -47,3 +47,4 @@ describe('angular', () => {
     expect(next).to.have.been.calledWith(sinon.match.instanceOf(Error))
   })
 })
+

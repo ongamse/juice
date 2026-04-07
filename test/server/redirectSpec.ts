@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
@@ -7,7 +7,7 @@ import sinon from 'sinon'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import { challenges } from '../../data/datacache'
-import { performRedirect } from '../../routes/redirect'
+import { performRedirect } from '../../routes/content-mgmt/redirect'
 import { type Challenge } from 'data/types'
 import { redirectAllowlist } from '../../lib/insecurity'
 
@@ -86,3 +86,4 @@ describe('redirect', () => {
     expect(challenges.redirectChallenge.solved).to.equal(true)
   })
 })
+
