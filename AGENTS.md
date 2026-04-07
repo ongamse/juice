@@ -137,14 +137,7 @@ git commit -s     # Sign-off commit
 - `npm run frisby` - API tests only
 - `npm run cypress:open` - Interactive E2E tests
 
-## Contribution Guidelines Summary
 
-See [CLAUDE.md](./.claude/CLAUDE.md#branch-and-pr-strategy) and [CONTRIBUTING.md](./CONTRIBUTING.md) for complete details:
-
-- Work on `develop` branch-based feature branches
-- Keep PRs focused on a single scope
-- Reference related issues in PR descriptions
-- Sign off all commits (DCO)
 
 ## Getting Help
 
