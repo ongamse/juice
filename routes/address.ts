@@ -5,10 +5,13 @@
 
 import { type Request, type Response } from 'express'
 import { AddressModel } from '../models/address'
+import * as models from '../models/index'
 
 export function getAddress () {
   return async (req: Request, res: Response) => {
-    const addresses = await AddressModel.findAll({ where: { UserId: req.body.UserId } })
+    const userId = req.body.UserId
+    await models.sequelize.query(`SELECT * FROM Addresses WHERE UserId = ${userId as string}`)
+    const addresses = await AddressModel.findAll({ where: { UserId: userId } })
     res.status(200).json({ status: 'success', data: addresses })
   }
 }
