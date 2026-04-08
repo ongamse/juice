@@ -1,6 +1,7 @@
 FROM node:22 AS installer
 COPY . /juice-shop
 WORKDIR /juice-shop
+ENV HUSKY=0
 RUN npm i -g typescript ts-node
 RUN npm install --omit=dev --unsafe-perm
 RUN npm dedupe --omit=dev
