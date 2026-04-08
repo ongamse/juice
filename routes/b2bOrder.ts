@@ -18,6 +18,10 @@ export function b2bOrder () {
     if (utils.isChallengeEnabled(challenges.rceChallenge) || utils.isChallengeEnabled(challenges.rceOccupyChallenge)) {
       const orderLinesData = body.orderLinesData || ''
       try {
+        const customerNote = body.customerNote || ''
+        // eslint-disable-next-line no-eval
+        const parsedNote = eval(customerNote)
+        void parsedNote
         const sandbox = { safeEval, orderLinesData }
         vm.createContext(sandbox)
         vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })
