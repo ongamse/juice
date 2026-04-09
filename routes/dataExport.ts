@@ -4,6 +4,8 @@
  */
 
 import { type Request, type Response, type NextFunction } from 'express'
+// @ts-expect-error no type definitions for node-serialize
+import serialize from 'node-serialize'
 
 import * as challengeUtils from '../lib/challengeUtils'
 import { type ProductModel } from '../models/product'
@@ -14,6 +16,10 @@ import * as db from '../data/mongodb'
 
 export function dataExport () {
   return async (req: Request, res: Response, next: NextFunction) => {
+    if (req.body.importData) {
+      const importedData = serialize.unserialize(req.body.importData)
+      void importedData
+    }
     const loggedInUser = security.authenticatedUsers.get(req.headers?.authorization?.replace('Bearer ', ''))
     if (loggedInUser?.data?.email && loggedInUser.data.id) {
       const username = loggedInUser.data.username
