@@ -1,0 +1,67 @@
+name: QA Automation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  qa-automation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Juice Shop
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Install Juice Shop dependencies
+        run: npm ci
+
+      - name: Start Juice Shop
+        run: |
+          npm start &
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000 >/dev/null; then
+              echo "Juice Shop is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Juice Shop did not become ready"
+          exit 1
+
+      - name: Checkout QA Automation tests
+        uses: actions/checkout@v4
+        with:
+          repository: Joyce0301/QA-automation
+          path: qa-automation
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install QA dependencies
+        working-directory: qa-automation
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run API tests
+        working-directory: qa-automation
+        run: pytest tests/api -m api --env=dev --alluredir=reports/allure-results
+
+      - name: Run UI tests
+        working-directory: qa-automation
+        run: pytest tests/ui -m ui --env=dev --alluredir=reports/allure-results
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: qa-automation/reports/allure-results
