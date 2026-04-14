@@ -172,11 +172,55 @@ describe('/api/BasketItems/:id', () => {
         return frisby.put(API_URL + '/BasketItems/' + json.data.id, {
           headers: authHeader,
           body: {
-            quantity: 20
+            quantity: 5
           }
         })
           .expect('status', 200)
-          .expect('json', 'data', { quantity: 20 })
+          .expect('json', 'data', { quantity: 5 })
+      })
+  })
+
+  it('PUT update basket item with zero quantity is forbidden', () => {
+    return frisby.post(API_URL + '/BasketItems', {
+      headers: authHeader,
+      body: {
+        BasketId: 2,
+        ProductId: 3,
+        quantity: 1
+      }
+    })
+      .expect('status', 200)
+      .then(({ json }) => {
+        return frisby.put(API_URL + '/BasketItems/' + json.data.id, {
+          headers: authHeader,
+          body: {
+            quantity: 0
+          }
+        })
+          .expect('status', 400)
+          .expect('json', 'error', 'You must order at least 1 item of this product.')
+      })
+  })
+
+  it('PUT update basket item with negative quantity is forbidden', () => {
+    return frisby.post(API_URL + '/BasketItems', {
+      headers: authHeader,
+      body: {
+        BasketId: 2,
+        ProductId: 3,
+        quantity: 1
+      }
+    })
+      .expect('status', 200)
+      .then(({ json }) => {
+        return frisby.put(API_URL + '/BasketItems/' + json.data.id, {
+          headers: authHeader,
+          body: {
+            quantity: -1
+          }
+        })
+          .expect('status', 400)
+          .expect('json', 'error', 'You must order at least 1 item of this product.')
       })
   })
 
@@ -186,7 +230,7 @@ describe('/api/BasketItems/:id', () => {
       body: {
         BasketId: 2,
         ProductId: 8,
-        quantity: 8
+        quantity: 5
       }
     })
       .expect('status', 200)
@@ -207,7 +251,7 @@ describe('/api/BasketItems/:id', () => {
       headers: authHeader,
       body: {
         ProductId: 8,
-        quantity: 8
+        quantity: 5
       }
     })
       .expect('status', 200)
@@ -230,7 +274,7 @@ describe('/api/BasketItems/:id', () => {
       body: {
         BasketId: 2,
         ProductId: 9,
-        quantity: 9
+        quantity: 5
       }
     })
       .expect('status', 200)
@@ -296,7 +340,7 @@ describe('/api/BasketItems/:id', () => {
       body: {
         BasketId: 2,
         ProductId: 10,
-        quantity: 10
+        quantity: 5
       }
     })
       .expect('status', 200)
