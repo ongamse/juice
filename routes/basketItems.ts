@@ -16,6 +16,8 @@ interface RequestWithRawBody extends Request {
   rawBody: string
 }
 
+const maxBasketItemQuantity = 5
+
 export function addBasketItem () {
   return async (req: Request, res: Response, next: NextFunction) => {
     const result = utils.parseJsonCustom((req as RequestWithRawBody).rawBody)
@@ -68,7 +70,7 @@ export function quantityCheckBeforeBasketItemUpdate () {
       const item = await BasketItemModel.findOne({ where: { id: req.params.id } })
       const user = security.authenticatedUsers.from(req)
       challengeUtils.solveIf(challenges.basketManipulateChallenge, () => { return user && req.body.BasketId && user.bid != req.body.BasketId }) // eslint-disable-line eqeqeq
-      if (req.body.quantity) {
+      if (req.body.quantity !== undefined) {
         if (item == null) {
           throw new Error('No such item found!')
         }
@@ -88,14 +90,23 @@ async function quantityCheck (req: Request, res: Response, next: NextFunction, i
     throw new Error('No such product found!')
   }
 
-  // is product limited per user and order, except if user is deluxe?
-  if (!product.limitPerUser || (product.limitPerUser && product.limitPerUser >= quantity) || security.isDeluxe(req)) {
-    if (product.quantity >= quantity) { // enough in stock?
-      next()
-    } else {
-      res.status(400).json({ error: res.__('We are out of stock! Sorry for the inconvenience.') })
-    }
+  if (quantity < 1) {
+    res.status(400).json({ error: res.__('You must order at least 1 item of this product.') })
+    return
+  }
+
+  const quantityLimit = product.limitPerUser && !security.isDeluxe(req)
+    ? Math.min(product.limitPerUser, maxBasketItemQuantity)
+    : maxBasketItemQuantity
+
+  if (quantity > quantityLimit) {
+    res.status(400).json({ error: res.__('You can order only up to {{quantity}} items of this product.', { quantity: quantityLimit.toString() }) })
+    return
+  }
+
+  if (product.quantity >= quantity) { // enough in stock?
+    next()
   } else {
-    res.status(400).json({ error: res.__('You can order only up to {{quantity}} items of this product.', { quantity: product.limitPerUser.toString() }) })
+    res.status(400).json({ error: res.__('We are out of stock! Sorry for the inconvenience.') })
   }
 }
