@@ -297,7 +297,7 @@ describe('/api/BasketItems/:id', () => {
       body: {
         BasketId: 2,
         ProductId: 12,
-        quantity: 12
+        quantity: 5
       }
     })
       .expect('status', 200)
