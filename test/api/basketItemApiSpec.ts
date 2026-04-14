@@ -77,7 +77,7 @@ describe('/api/BasketItems', () => {
       headers: authHeader,
       body: {
         BasketId: 2,
-        ProductId: 3,
+        ProductId: 4,
         quantity: 0
       }
     })
@@ -90,7 +90,7 @@ describe('/api/BasketItems', () => {
       headers: authHeader,
       body: {
         BasketId: 2,
-        ProductId: 3,
+        ProductId: 5,
         quantity: -1
       }
     })
@@ -163,7 +163,7 @@ describe('/api/BasketItems/:id', () => {
       headers: authHeader,
       body: {
         BasketId: 2,
-        ProductId: 3,
+        ProductId: 13,
         quantity: 3
       }
     })
@@ -185,7 +185,7 @@ describe('/api/BasketItems/:id', () => {
       headers: authHeader,
       body: {
         BasketId: 2,
-        ProductId: 3,
+        ProductId: 14,
         quantity: 1
       }
     })
@@ -207,7 +207,7 @@ describe('/api/BasketItems/:id', () => {
       headers: authHeader,
       body: {
         BasketId: 2,
-        ProductId: 3,
+        ProductId: 15,
         quantity: 1
       }
     })
