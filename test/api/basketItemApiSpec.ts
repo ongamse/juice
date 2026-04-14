@@ -59,6 +59,45 @@ describe('/api/BasketItems', () => {
       .expect('status', 200)
   })
 
+  it('POST new basket item with maximum allowed quantity', () => {
+    return frisby.post(API_URL + '/BasketItems', {
+      headers: authHeader,
+      body: {
+        BasketId: 2,
+        ProductId: 3,
+        quantity: 5
+      }
+    })
+      .expect('status', 200)
+      .expect('json', 'data', { quantity: 5 })
+  })
+
+  it('POST new basket item with zero quantity is forbidden', () => {
+    return frisby.post(API_URL + '/BasketItems', {
+      headers: authHeader,
+      body: {
+        BasketId: 2,
+        ProductId: 3,
+        quantity: 0
+      }
+    })
+      .expect('status', 400)
+      .expect('json', 'error', 'You must order at least 1 item of this product.')
+  })
+
+  it('POST new basket item with negative quantity is forbidden', () => {
+    return frisby.post(API_URL + '/BasketItems', {
+      headers: authHeader,
+      body: {
+        BasketId: 2,
+        ProductId: 3,
+        quantity: -1
+      }
+    })
+      .expect('status', 400)
+      .expect('json', 'error', 'You must order at least 1 item of this product.')
+  })
+
   it('POST new basket item with more than available quantity is forbidden', () => {
     return frisby.post(API_URL + '/BasketItems', {
       headers: authHeader,
