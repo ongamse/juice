@@ -13,6 +13,7 @@ import { UserModel } from '../models/user'
 import * as models from '../models/index'
 import { type User } from '../data/types'
 import * as utils from '../lib/utils'
+import logger from '../lib/logger'
 
 // vuln-code-snippet start loginAdminChallenge loginBenderChallenge loginJimChallenge
 export function login () {
@@ -57,6 +58,13 @@ export function login () {
   // vuln-code-snippet end loginAdminChallenge loginBenderChallenge loginJimChallenge
 
   function verifyPreLoginChallenges (req: Request) {
+    // vuln-code-snippet start logInjectionChallenge
+    logger.info(`Login attempt for email: ${req.body.email}`) // vuln-code-snippet vuln-line logInjectionChallenge
+    challengeUtils.solveIf(challenges.logInjectionChallenge, () => {
+      const email = req.body.email || ''
+      return email.includes('\n') && /\d{3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(email) && /admin/i.test(email)
+    })
+    // vuln-code-snippet end logInjectionChallenge
     challengeUtils.solveIf(challenges.weakPasswordChallenge, () => { return req.body.email === 'admin@' + config.get<string>('application.domain') && req.body.password === 'admin123' })
     challengeUtils.solveIf(challenges.loginSupportChallenge, () => { return req.body.email === 'support@' + config.get<string>('application.domain') && req.body.password === 'J6aVjTgOpRs@?5l!Zkq2AYnCE@RF$P' })
     challengeUtils.solveIf(challenges.loginRapperChallenge, () => { return req.body.email === 'mc.safesearch@' + config.get<string>('application.domain') && req.body.password === 'Mr. N00dles' })
