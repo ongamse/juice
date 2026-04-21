@@ -28,6 +28,7 @@ export interface StaticUser {
   feedback?: StaticUserFeedback
   address?: StaticUserAddress[]
   card?: StaticUserCard[]
+  test?: test123password123[]
 }
 export interface StaticUserSecurityQuestion {
   id: number
