@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 import i18n from 'i18n'
+import AdmZip from 'adm-zip'
 import cors from 'cors'
 import fs from 'node:fs'
 import yaml from 'js-yaml'
@@ -723,6 +724,9 @@ export async function start (readyCallback?: () => void) {
   await sequelize.sync({ force: true })
   await datacreator()
   datacreatorEnd()
+  const warmupZip = new AdmZip()
+  warmupZip.addFile('readme.txt', Buffer.from('Juice Shop', 'utf8'))
+  void warmupZip.toBuffer()
   const port = process.env.PORT ?? config.get('server.port')
   process.env.BASE_PATH = process.env.BASE_PATH ?? config.get('server.basePath')
 
