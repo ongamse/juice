@@ -1,4 +1,4 @@
-name: Snyk SCA, Code, IaC and Container CLI monitor example
+name: Snyk SCA, Code, IaC and Container CLI basic example
 
 on:
   push:
