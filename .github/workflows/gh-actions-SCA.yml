@@ -33,11 +33,10 @@ jobs:
         ls -l /home/runner/work/juice-shop/juice-shop
         ls -l /home/runner/work/juice-shop/juice-shop/bom.xml
         curl -v -X "POST" "https://dependency-track-devsecops-${{ secrets.LABINSTANCEID }}.azurewebsites.net/api/v1/bom" \
-             -H 'Content-Type: multipart/form-data' \
              -H 'X-API-Key: ${{ secrets.DTRACKAPIKEY }}' \
              -F 'project=${{ secrets.DTRACKPROJID }}' \
              -F 'projectname=DevSecOps' \
-             -F 'bom=@${{ github.workspace }}/bom.xml'
+             -F 'bom=@${{ github.workspace }}/bom.json'
       continue-on-error: true
 
                     
