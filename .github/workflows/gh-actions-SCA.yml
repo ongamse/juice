@@ -30,8 +30,6 @@ jobs:
       shell: bash
     - name: Upload BOM to Dependency-Track
       run: |
-        ls -l /home/runner/work/juice-shop/juice-shop
-        ls -l /home/runner/work/juice-shop/juice-shop/bom.xml
         curl -v -X "POST" "https://dependency-track-devsecops-${{ secrets.LABINSTANCEID }}.azurewebsites.net/api/v1/bom" \
              -H 'X-API-Key: ${{ secrets.DTRACKAPIKEY }}' \
              -F 'project=${{ secrets.DTRACKPROJID }}' \
