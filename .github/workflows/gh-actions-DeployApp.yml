@@ -93,6 +93,8 @@ jobs:
               "linuxFxVersion": "DOCKER|acrdevsecops${{ secrets.LABINSTANCEID }}.azurecr.io/devsecops:${{ github.run_id }}"
             }
 
+            app-settings-json: '[{ "name": "SQL_DB_URL", "value": "@Microsoft.KeyVault(SecretUri=https://kvdevsecops61296188.vault.azure.net/secrets/SQL-DB-URL)", "slotSetting": false }, { "name": "2FASecret", "value": "@Microsoft.KeyVault(SecretUri=https://kvdevsecops61296188.vault.azure.net/secrets/2FASecret)", "slotSetting": false }]    '
+
       - name: Restart Prod Web App
         uses: azure/cli@v1.0.0
         with:
