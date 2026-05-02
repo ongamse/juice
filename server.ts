@@ -351,6 +351,7 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   /** Authorization **/
   /* Checks on JWT in Authorization header */ // vuln-code-snippet hide-line
   app.use(verify.jwtChallenges()) // vuln-code-snippet hide-line
+  app.use(security.updateAuthenticatedUsers()) // vuln-code-snippet hide-line
   /* Baskets: Unauthorized users are not allowed to access baskets */
   app.use('/rest/basket', security.isAuthorized(), security.appendUserId())
   /* BasketItems: API only accessible for authenticated users */
