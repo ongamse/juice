@@ -19,7 +19,7 @@ jobs:
         java-version: 11
 
     - name: NPM Install
-      run: npm install |
+      run: npm install
     
     - name: Download QwietAI CLI
       run: |
