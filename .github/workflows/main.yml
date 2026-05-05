@@ -20,6 +20,8 @@ jobs:
 
     - name: NPM Install
       run: npm install
+           rm -rf node_modules
+           rm -rf frontend/dist frontend/node_modules dist build
     
     - name: Download QwietAI CLI
       run: |
