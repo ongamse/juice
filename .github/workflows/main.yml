@@ -30,6 +30,6 @@ jobs:
         ${GITHUB_WORKSPACE}/sl --version
         ${GITHUB_WORKSPACE}/sl analyze --strict --wait \
           --app QwietAI-Juicy \
-          --tag branch=${{ github.head_ref }} --oss-project-dir .
+          --tag branch=${{ github.head_ref }} --oss-project-dir . --jssrc .
       env:
         SHIFTLEFT_ACCESS_TOKEN: ${{ secrets.SHIFTLEFT_ACCESS_TOKEN }}
