@@ -19,7 +19,9 @@ jobs:
         java-version: 11
 
     - name: NPM Install
-      run: npm install
+      run: npm install |
+           rm -rf node_modules |
+           rm -rf frontend/dist frontend/node_modules dist build
     
     - name: Download QwietAI CLI
       run: |
@@ -30,6 +32,6 @@ jobs:
         ${GITHUB_WORKSPACE}/sl --version
         ${GITHUB_WORKSPACE}/sl analyze --strict --wait \
           --app QwietAI-Juicy \
-          --tag branch=${{ github.head_ref }} --oss-project-dir . --jssrc .
+          --tag branch=${{ github.head_ref }} --oss-project-dir /frontend/.
       env:
         SHIFTLEFT_ACCESS_TOKEN: ${{ secrets.SHIFTLEFT_ACCESS_TOKEN }}
