@@ -18,8 +18,8 @@ jobs:
         distribution: zulu
         java-version: 11
 
-    - name: NPM Install
-      run: npm install
+    #- name: NPM Install
+     # run: npm install
     
     - name: Download QwietAI CLI
       run: |
@@ -27,6 +27,7 @@ jobs:
 
     - name: preZero Static Analysis
       run: |
+        ${GITHUB_WORKSPACE}/npm install
         ${GITHUB_WORKSPACE}/sl --version
         ${GITHUB_WORKSPACE}/sl analyze --strict --wait --verbose \
           --app QwietAI-Juicy \
