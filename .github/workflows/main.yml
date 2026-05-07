@@ -27,10 +27,9 @@ jobs:
 
     - name: preZero Static Analysis
       run: |
-        npm install |
         ${GITHUB_WORKSPACE}/sl --version
         ${GITHUB_WORKSPACE}/sl analyze --strict --wait --verbose \
-          --app QwietAI-Juicy \
+          --app QwietAI-Juicy --package-json package.json \
           --tag branch=${{ github.head_ref }}
       env:
         SHIFTLEFT_ACCESS_TOKEN: ${{ secrets.SHIFTLEFT_ACCESS_TOKEN }}
