@@ -27,7 +27,7 @@ jobs:
 
     - name: preZero Static Analysis
       run: |
-        ${GITHUB_WORKSPACE}/npm install
+        npm install |
         ${GITHUB_WORKSPACE}/sl --version
         ${GITHUB_WORKSPACE}/sl analyze --strict --wait --verbose \
           --app QwietAI-Juicy \
